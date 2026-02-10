@@ -17,7 +17,7 @@ def plot_data(X, Y,dataset_name):
     mean = np.mean(X, axis=0)
     std = np.std(X, axis=0)
     X = (X - mean) / std
-    eta = 0.001
+    eta = .01
     n_iter = 500
     ada = AdalineGD(eta=eta, n_iter=n_iter)
     lrg = LogisticRegressionGD(eta=eta, n_iter=n_iter)

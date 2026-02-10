@@ -20,7 +20,6 @@ class AdalineGD:
             output = self.activation(net_input)
             errors = (y - output)
             self.w_ += self.eta * 2.0 * np.insert(X, 0, 1, axis=1).T.dot(errors) / X.shape[0]
-            # self.b_ += self.eta * 2.0 * errors.mean()
             loss = (errors ** 2).mean()
             self.losses_.append(loss)
         return self
