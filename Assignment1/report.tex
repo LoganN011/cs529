@@ -14,6 +14,28 @@
 \section{Task 2}
 
 \section{Task 3}
+The way in which I devolved the multiclass classification using Adaline was by using hierarchical classification. Hierarchical classification is splitting the groups into different sets. The first model is used to classify if it is group 1 or something else. The second model is used to separate the class 1 and 2 from each other. The second model is only trained using class 1 and 2 while the first model has all of the data but to it class 1 and 2 are the same thing (or not class 0). That is how the data is trained using fit. When we go to predict data with a value we give it the value or values like we normally do. We first use model 1 to check to see the value is with class 0 or either class 1 or 2. If it is class 0 then we say it is normally. If it is not class 0 then we have to use the second model to see if it is class 1 or 2. 
+
+The other option that I found for multiclass classification using Adaline was by using a one vs rest idea. The idea is that you have a model for each class of data and the values in that model are positive for that class and negative for all other ones. The way this is used to predict a value is when we get a new data point x we do not know what model would be best so we test all of the models and which ever one gives the highest value is the model it belongs to. 
+
+\begin{figure}[htbp]
+    \centering
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{Assignment1/figures/myplot.png}
+        \caption{Hierarchical classification}
+        \label{fig:plot1}
+    \end{minipage}
+    \hfill 
+    \begin{minipage}{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{Assignment1/figures/myplot2.png}
+        \caption{One V.S Rest Classification}
+        \label{fig:plot2}
+    \end{minipage}
+\end{figure}
+
+The reason that I did hierarchical classification over one vs rest was because of how the data is structured and how the they compared to each other. I had originally done one vs rest but after looking at the output of the predication model and how it was graphed it did not look like it would be good. The original had the line for class 0 right next to classes 1 and 2 and the the line separating classes 1 and 2 was vertical. Since classes 1 and 2 are very similar with the petal width and length so it did a bad job classifying them. When using hierarchical classification I was able to get it where the line reduced the number of miss classification by making it so the line would be either vertical or horizontal if needed. In this case we have a diagonal line that best fits the data. This change in the two versions can be seen in figures \ref{fig:plot1} and \ref{fig:plot2}.
 
 \section{Task 4}
 
