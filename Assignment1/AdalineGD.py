@@ -13,22 +13,23 @@ class AdalineGD:
         self.w_ = rgen.normal(loc=0.0, scale=0.01, size=1 + X.shape[1])
         self.losses_ = []
 
-
+        X_with_bias = np.insert(X, 0, 1, axis=1)
 
         for i in range(self.n_iter):
-            net_input = self.net_input(X)
+            net_input = self.net_input(X_with_bias)
             output = self.activation(net_input)
             errors = (y - output)
-            self.w_ += self.eta * 2.0 * np.insert(X, 0, 1, axis=1).T.dot(errors) / X.shape[0]
+            self.w_ += self.eta * 2.0 * X_with_bias.T.dot(errors) / X.shape[0]
             loss = (errors ** 2).mean()
             self.losses_.append(loss)
         return self
 
     def net_input(self, X):
-        return np.dot(np.insert(X, 0, 1, axis=1), self.w_)
+        return np.dot(X, self.w_)
 
     def activation(self, X):
         return X
 
     def predict(self, X):
-        return np.where(self.activation(self.net_input(X)) >= 0.5, 1, 0)
+        X_with_bias = np.insert(X, 0, 1, axis=1)
+        return np.where(self.activation(self.net_input(X_with_bias)) >= 0.5, 1, 0)
