@@ -1,8 +1,11 @@
 import pandas as pd
+
+from AdalineGD import AdalineGD
 from LogisticRegressionGD import LogisticRegressionGD
 import matplotlib.pyplot as plt
 from MultiClassAdalineGD import *
 from matplotlib.colors import ListedColormap
+from AdalineSGD import *
 
 def plot_data(X, Y,dataset_name):
     eta = .01
@@ -29,7 +32,6 @@ def plot_data(X, Y,dataset_name):
     plt.tight_layout()
     plt.show()
 
-#TODO fix errors
 
 def plot_decision_regions(X, y, classifier, resolution=0.02):
     markers = ('o', 's', '^', 'v', '<')
@@ -67,6 +69,7 @@ def get_scaled_iris():
     X = (X - mean) / std
     return X, y
 
+# Task 2
 X , Y = get_scaled_iris()
 plot_data(X, Y,"Iris")
 
@@ -83,6 +86,7 @@ X = (X - mean) / std
 
 plot_data(X, Y,"Wine")
 
+#Task 1
 X , Y = get_scaled_iris()
 
 ada = AdalineGD(eta=0.01, n_iter=500)
@@ -90,6 +94,7 @@ ada.fit(X, Y)
 plot_decision_regions(X, Y, classifier=ada)
 plt.xlabel('Petal length [standardized]')
 plt.ylabel('Petal width [standardized]')
+plt.title('Adaline - Iris')
 plt.legend(loc='upper left')
 plt.tight_layout()
 plt.show()
@@ -101,10 +106,12 @@ lrg.fit(X, Y)
 plot_decision_regions(X, Y, classifier=lrg)
 plt.xlabel('Petal length [standardized]')
 plt.ylabel('Petal width [standardized]')
+plt.title('Logistic Regression - Iris')
 plt.legend(loc='upper left')
 plt.tight_layout()
 plt.show()
 
+#Task 3
 df_iris = pd.read_csv('https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data', header=None)
 Y = df_iris.iloc[:, 4].values
 Y = np.where(Y == 'Iris-setosa', 0, np.where(Y == 'Iris-versicolor',1,2))
@@ -113,11 +120,30 @@ mean = np.mean(X, axis=0)
 std = np.std(X, axis=0)
 X = (X - mean) / std
 
-mca = MultiClassAdalineGD(0.01,500)
+mca = MultiClassPerceptron(0.01,500)
 mca.fit(X, Y)
 plot_decision_regions(X, Y, classifier=mca)
 plt.xlabel('Petal length [standardized]')
 plt.ylabel('Petal width [standardized]')
+plt.title('Multi-Class Adaline - Iris')
+plt.legend(loc='upper left')
+plt.tight_layout()
+plt.show()
+
+#Task 4
+X, Y = get_scaled_iris()
+adaSGD = AdalineSGD(eta=0.01, n_iter=500)
+ada = AdalineGD(eta=0.01, n_iter=500)
+lrg = LogisticRegressionGD(eta=0.01, n_iter=500)
+
+adaSGD.fit(X, Y)
+ada.fit(X, Y)
+lrg.fit_mini_batch_SGD(X, Y)
+
+plot_decision_regions(X, Y, classifier=lrg)
+plt.xlabel('Petal length [standardized]')
+plt.ylabel('Petal width [standardized]')
+plt.title('Lrg Mini Batch - Iris')
 plt.legend(loc='upper left')
 plt.tight_layout()
 plt.show()

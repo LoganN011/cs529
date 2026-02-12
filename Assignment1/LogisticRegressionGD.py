@@ -25,6 +25,13 @@ class LogisticRegressionGD:
 
     def  fit_mini_batch_SGD(self, X, y):
         #todo write this function
+        '''
+        To do this we look at SGD.
+        That version of this picks a single random value to update on. For this one
+        we want select a random batch of 32 elements. I am not sure if it is 32 random elements or if
+        it is a section of 32 elements. DO NOT USE A FOR LOOP. Think about how to use
+        vector operations to calculate the new weights
+        '''
         return self
 
     def net_input(self, X):
