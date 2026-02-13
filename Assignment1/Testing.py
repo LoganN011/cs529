@@ -68,7 +68,7 @@ def get_scaled_iris():
     std = np.std(X, axis=0)
     X = (X - mean) / std
     return X, y
-'''
+
 # Task 2
 X , Y = get_scaled_iris()
 plot_data(X, Y,"Iris")
@@ -128,7 +128,7 @@ plt.ylabel('Petal width [standardized]')
 plt.legend(loc='upper left')
 plt.tight_layout()
 plt.show()
-'''
+
 #Task 4
 df_wine = pd.read_csv('https://archive.ics.uci.edu/ml/machine-learning-databases/wine/wine.data', header=None)
 df_wine = df_wine[df_wine[0].isin([1,2])]
