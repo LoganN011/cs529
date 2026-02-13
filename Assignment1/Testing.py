@@ -3,9 +3,9 @@ import pandas as pd
 from AdalineGD import AdalineGD
 from LogisticRegressionGD import LogisticRegressionGD
 import matplotlib.pyplot as plt
-from MultiClassAdalineGD import *
+from MultiClassPerceptron import *
 from matplotlib.colors import ListedColormap
-from AdalineSGD import *
+import time
 
 def plot_data(X, Y,dataset_name):
     eta = .01
@@ -68,7 +68,7 @@ def get_scaled_iris():
     std = np.std(X, axis=0)
     X = (X - mean) / std
     return X, y
-
+'''
 # Task 2
 X , Y = get_scaled_iris()
 plot_data(X, Y,"Iris")
@@ -125,25 +125,57 @@ mca.fit(X, Y)
 plot_decision_regions(X, Y, classifier=mca)
 plt.xlabel('Petal length [standardized]')
 plt.ylabel('Petal width [standardized]')
-plt.title('Multi-Class Adaline - Iris')
 plt.legend(loc='upper left')
 plt.tight_layout()
 plt.show()
-
+'''
 #Task 4
-X, Y = get_scaled_iris()
-adaSGD = AdalineSGD(eta=0.01, n_iter=500)
-ada = AdalineGD(eta=0.01, n_iter=500)
+df_wine = pd.read_csv('https://archive.ics.uci.edu/ml/machine-learning-databases/wine/wine.data', header=None)
+df_wine = df_wine[df_wine[0].isin([1,2])]
+Y = df_wine.iloc[:, 0].values
+Y = np.where(Y == 1, 0, 1)
+X = df_wine.iloc[:, 1:].values
+mean = np.mean(X, axis=0)
+std = np.std(X, axis=0)
+X = (X - mean) / std
 lrg = LogisticRegressionGD(eta=0.01, n_iter=500)
+lrg_sgd = LogisticRegressionGD(eta=0.01, n_iter=500,batch_size=1)
+lrg_mini = LogisticRegressionGD(eta=0.01, n_iter=500,batch_size=32)
 
-adaSGD.fit(X, Y)
-ada.fit(X, Y)
-lrg.fit_mini_batch_SGD(X, Y)
+start = time.time()
+lrg.fit(X, Y)
+end = time.time()
+print(f"Batch GD Time: {end - start:.4f}s")
 
-plot_decision_regions(X, Y, classifier=lrg)
-plt.xlabel('Petal length [standardized]')
-plt.ylabel('Petal width [standardized]')
-plt.title('Lrg Mini Batch - Iris')
-plt.legend(loc='upper left')
-plt.tight_layout()
+# Measure SGD (Batch Size 1)
+start = time.time()
+lrg_sgd.fit_mini_batch_SGD(X, Y)
+end = time.time()
+print(f"SGD (Size 1) Time: {end - start:.4f}s")
+
+# Measure Mini-Batch SGD (Batch Size 32)
+start = time.time()
+lrg_mini.fit_mini_batch_SGD(X, Y)
+end = time.time()
+print(f"Mini-Batch (Size 32) Time: {end - start:.4f}s")
+
+plt.figure(figsize=(10, 6))
+
+# Plotting each line
+plt.plot(range(1, len(lrg.losses_) + 1), lrg.losses_,
+         label='Batch GD', color='blue', linestyle='--')
+
+plt.plot(range(1, len(lrg_sgd.losses_) + 1), lrg_sgd.losses_,
+         label='SGD (Batch Size 1)', color='red', alpha=0.6)
+
+plt.plot(range(1, len(lrg_mini.losses_) + 1), lrg_mini.losses_,
+         label='Mini-Batch (Batch Size 32)', color='green', linewidth=2)
+
+
+plt.xlabel('Epochs')
+plt.ylabel('Log-Likelihood Loss')
+plt.title('Logistic Regression: GD vs SGD vs Mini-Batch')
+plt.legend(loc='upper right')
+plt.grid(True, linestyle=':', alpha=0.6)
+
 plt.show()
