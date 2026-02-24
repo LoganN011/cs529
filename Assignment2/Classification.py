@@ -1,32 +1,7 @@
-import numpy as np
 from sklearn.model_selection import train_test_split
+import numpy as np
 import matplotlib.pyplot as plt
-
-def plot_classification(X, y,test_idx=None):
-    markers = ('o', 's', '^', 'v', '<')
-    colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-    unique_labels = np.unique(y)
-
-    for idx, cl in enumerate(unique_labels):
-        plt.scatter(x=X[y == cl, 0],
-                    y=X[y == cl, 1],
-                    alpha=0.8,
-                    c=colors[idx],
-                    marker=markers[idx],
-                    label=f'Class {cl}',
-                    edgecolor='black')
-    if test_idx:
-        X_test, y_test = X[test_idx, :], y[test_idx]
-
-        plt.scatter(X_test[:, 0],
-                    X_test[:, 1],
-                    c='none',
-                    edgecolor='black',
-                    alpha=1.0,
-                    linewidth=1,
-                    marker='o',
-                    s=100,
-                    label='Test set')
+from Utils import plot_decision_regions
 
 def make_classification(d,n,u,random_state=None,return_line=False):
     rgen = np.random.RandomState(random_state)
@@ -50,7 +25,7 @@ X_train, X_test, y_train, y_test,a = make_classification(d=2, n=100, u=10,random
 X_combined = np.vstack((X_train, X_test))
 y_combined = np.hstack((y_train, y_test))
 
-plot_classification(X_combined, y_combined,test_idx=range(len(X_train),len(X_combined)))
+plot_decision_regions(X_combined, y_combined,test_idx=range(len(X_train),len(X_combined)))
 x1_min, x1_max = X_combined[:, 0].min() - 1, X_combined[:, 0].max() + 1
 x1_values = np.array([x1_min, x1_max])
 x2_values = -(a[0] / a[1]) * x1_values
