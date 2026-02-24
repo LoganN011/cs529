@@ -20,17 +20,18 @@ def make_classification(d,n,u,random_state=None,return_line=False):
     else:
         return X_train, X_test, y_train, y_test
 
+if __name__ == "__main__":
 
-X_train, X_test, y_train, y_test,a = make_classification(d=2, n=100, u=10,random_state=1,return_line=True)
-X_combined = np.vstack((X_train, X_test))
-y_combined = np.hstack((y_train, y_test))
+    X_train, X_test, y_train, y_test,a = make_classification(d=2, n=100, u=10,random_state=1,return_line=True)
+    X_combined = np.vstack((X_train, X_test))
+    y_combined = np.hstack((y_train, y_test))
 
-plot_decision_regions(X_combined, y_combined,test_idx=range(len(X_train),len(X_combined)))
-x1_min, x1_max = X_combined[:, 0].min() - 1, X_combined[:, 0].max() + 1
-x1_values = np.array([x1_min, x1_max])
-x2_values = -(a[0] / a[1]) * x1_values
-plt.plot(x1_values, x2_values, 'k--', label='Decision Boundary')
-plt.ylim(X_combined[:, 1].min() - 1, X_combined[:, 1].max() + 1)
-plt.legend(loc='upper left')
-plt.show()
+    plot_decision_regions(X_combined, y_combined,test_idx=range(len(X_train),len(X_combined)))
+    x1_min, x1_max = X_combined[:, 0].min() - 1, X_combined[:, 0].max() + 1
+    x1_values = np.array([x1_min, x1_max])
+    x2_values = -(a[0] / a[1]) * x1_values
+    plt.plot(x1_values, x2_values, 'k--', label='Decision Boundary')
+    plt.ylim(X_combined[:, 1].min() - 1, X_combined[:, 1].max() + 1)
+    plt.legend(loc='upper left')
+    plt.show()
 

@@ -24,29 +24,30 @@ class LinearSVC:
 
     def fit(self, X, y):
         rgen = np.random.RandomState(self.random_state)
-        self.w_ = rgen.normal(loc=0.0, scale=0.01, size= X.shape[1])
-        self.b_ = np.float64(0.)
+        self.w_ = rgen.normal(loc=0.0, scale=0.01, size=X.shape[1])
+        self.b_ = 0.0
         self.losses_ = []
 
         y_copy = np.where(y <= 0, -1, 1)
+
         for _ in range(self.n_iter):
             indices = np.arange(X.shape[0])
             rgen.shuffle(indices)
+            epoch_loss = 0
 
-            loss = 0
             for i in indices:
-                condition = y_copy[i] * self.net_input(X[i]) >= 1
+                val = y_copy[i] * self.net_input(X[i])
 
-                if condition:
-                    self.w_ -= self.eta * (1 / self.C * self.w_)
+                if val >= 1:
+                    self.w_ -= self.eta * (2 * (1 / self.C) * self.w_)
                 else:
-                    self.w_ += self.eta * (y_copy[i] * X[i] - (1 / self.C * self.w_))
-                    self.b_ += self.eta * y_copy[i]
+                    self.w_ -= self.eta * (2 * (1 / self.C) * self.w_ - np.dot(y_copy[i], X[i]))
+                    self.b_ -= self.eta * -y_copy[i]
 
-                loss += max(0, 1 - y_copy[i] * self.net_input(X[i]))
+                epoch_loss += max(0, 1 - val)
 
-            self.losses_.append(loss)
-
+            l2_term = (1 / self.C) * np.dot(self.w_, self.w_)
+            self.losses_.append(epoch_loss + l2_term)
 
         return self
 
@@ -56,15 +57,17 @@ class LinearSVC:
     def predict(self, X):
         return np.where(self.net_input(X) >= 0.0, 1, -1)
 
-X,X_test, Y, Y_test = make_classification(d=2, n=100, u=10,random_state=1)
-X_combined = np.vstack((X, X_test))
-y_combined = np.hstack((Y, Y_test))
-svc = LinearSVC(eta=0.1, n_iter=5000)
-svc.fit(X, Y)
-plot_decision_regions(X_combined, y_combined,classifier=svc,test_idx=range(len(X),len(X_combined)))
-plt.legend(loc='upper left')
-plt.tight_layout()
-plt.show()
+
+if __name__ == "__main__":
+    X,X_test, Y, Y_test = make_classification(d=2, n=100, u=10,random_state=1)
+    X_combined = np.vstack((X, X_test))
+    y_combined = np.hstack((Y, Y_test))
+    svc = LinearSVC(eta=0.0001, n_iter=1000, C=10.0)
+    svc.fit(X, Y)
+    plot_decision_regions(X_combined, y_combined,classifier=svc,test_idx=range(len(X),len(X_combined)))
+    plt.legend(loc='upper left')
+    plt.tight_layout()
+    plt.show()
 
 
 #Task 3 and 4
