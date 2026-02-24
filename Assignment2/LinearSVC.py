@@ -1,3 +1,4 @@
+import os
 import time
 
 import numpy as np
@@ -6,6 +7,7 @@ import pandas as pd
 from Classification import make_classification
 from sklearn.svm import LinearSVC as sklearnSVC
 from Utils import plot_decision_regions
+from sklearn.metrics import hinge_loss
 
 
 class LinearSVC:
@@ -26,7 +28,7 @@ class LinearSVC:
         for _ in range(self.n_iter):
             indices = np.arange(X.shape[0])
             rgen.shuffle(indices)
-            epoch_loss = 0
+            loss = 0
 
             for i in indices:
                 val = y_copy[i] * self.net_input(X[i])
@@ -37,11 +39,11 @@ class LinearSVC:
                     self.w_ -= self.eta * (2 * (1 / self.C) * self.w_ - np.dot(y_copy[i], X[i]))
                     self.b_ -= self.eta * -y_copy[i]
 
-                epoch_loss += max(0, 1 - val)
+                loss += max(0, 1 - val)
 
-            l2_term = (1 / self.C) * np.dot(self.w_, self.w_)
-            avg_epoch_loss = (epoch_loss / X.shape[0]) + l2_term
-            self.losses_.append(avg_epoch_loss)
+            l2_term = (1 / 2) * np.dot(self.w_, self.w_)
+            epoch_loss = (loss*self.C / X.shape[0]) + l2_term
+            self.losses_.append(epoch_loss)
 
         return self
 
@@ -51,24 +53,83 @@ class LinearSVC:
     def predict(self, X):
         return np.where(self.net_input(X) >= 0.0, 1, -1)
 
-def run_scalability_test(model, d_list, n_list, u_val=100):
+def run_scalability_test(model, d_list, n_list, folder="test_data"):
     results = []
 
+    num_plots = len(d_list) * len(n_list)
+    fig, axes = plt.subplots(len(d_list), len(n_list), figsize=(5 * len(n_list), 4 * len(d_list)))
+    if num_plots > 1:
+        axes_flat = axes.flatten()
+    else:
+        axes_flat = [axes]
+
+    plot_idx=0
     for d in d_list:
         for n in n_list:
-            print(f"Testing: n={n}, d={d}...")
+            filename = f"{folder}/data_n{n}_d{d}.npz"
 
+            if not os.path.exists(filename):
+                print(f"Skipping: {filename} not found.")
+                continue
 
-            X, X_test, y,y_test = make_classification(n=n, d=d, u=u_val,random_state=1)
-            X =np.vstack((X, X_test))
-            y =np.hstack((y, y_test))
+            data = np.load(filename)
+            X, y = data['X'], data['y']
+
 
             start_time = time.time()
             model.fit(X, y)
             end_time = time.time()
             elapsed_time = end_time - start_time
 
-            plt.plot(range(1, len(model.losses_) + 1), model.losses_, linestyle='-', color='blue')
+            ax = axes_flat[plot_idx]
+            ax.plot(range(1, len(model.losses_) + 1), model.losses_, linestyle='-', color='blue')
+            ax.set_xlabel('Epochs')
+            ax.set_ylabel('Loss')
+            ax.set_title(f'Scalability Test: D={d}, N={n}')
+            plot_idx += 1
+            results.append({
+                'Samples (n)': n,
+                'Dimensions (d)': d,
+                'Time (s)': round(elapsed_time, 4)
+            })
+
+    plt.tight_layout()
+    plt.show()
+    return pd.DataFrame(results)
+
+def run_sklearn_test(d_list, n_list,max_iter=1000, folder="test_data"):
+    results = []
+    losses = []
+
+    for d in d_list:
+        for n in n_list:
+            filename = f"{folder}/data_n{n}_d{d}.npz"
+
+            if not os.path.exists(filename):
+                print(f"Skipping: {filename} not found.")
+                continue
+
+            data = np.load(filename)
+            X, y = data['X'], data['y']
+
+            # dual = sklearnSVC(dual=True,loss='hinge')
+            # primal = sklearnSVC(dual=False,loss='hinge')
+            total_time = 0
+            for i in range(1,max_iter+1):
+                clf = sklearnSVC(dual=True,loss='hinge',max_iter=i)
+
+                start_time = time.time()
+                clf.fit(X, y)
+                elapsed = time.time() - start_time
+
+                # Track the total cumulative time and current loss
+                total_time += elapsed
+                decision = clf.decision_function(X)
+                loss = hinge_loss(y, decision)
+                losses.append(loss)
+
+
+            plt.plot(range(1, len(losses) + 1), losses, linestyle='-', color='blue')
             plt.xlabel('Epochs')
             plt.ylabel('Loss')
             plt.title(f'Scalability Test: D={d}, N={n}')
@@ -78,10 +139,25 @@ def run_scalability_test(model, d_list, n_list, u_val=100):
             results.append({
                 'Samples (n)': n,
                 'Dimensions (d)': d,
-                'Time (s)': round(elapsed_time, 4)
+                'Time (s)': round(total_time, 4)
             })
 
-    return pd.DataFrame(results)
+
+def generate_and_save_datasets(d_list, n_list, u_val=100, folder="test_data"):
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+
+    for d in d_list:
+        for n in n_list:
+            print(f"Generating: n={n}, d={d}...")
+
+
+            X, X_test, y, y_test = make_classification(n=n, d=d, u=u_val, random_state=1)
+            X_full = np.vstack((X, X_test))
+            y_full = np.hstack((y, y_test))
+
+            filename = f"{folder}/data_n{n}_d{d}.npz"
+            np.savez(filename, X=X_full, y=y_full)
 
 
 if __name__ == "__main__":
@@ -99,27 +175,31 @@ if __name__ == "__main__":
     #Task 3 and 4
 
 
-    # --- Execution ---
-    d_scales = [10, 50, 100]
-    n_scales = [50, 500, 5000]
-    #Task 3
-    # svc = LinearSVC(eta=0.00001, n_iter=1000, C=1.0)
-    # df_results = run_scalability_test(svc, d_scales, n_scales)
-    #
-    #
-    # pivot_table = df_results.pivot(index='Samples (n)', columns='Dimensions (d)', values='Time (s)')
-    # print("\n--- Time Cost (Seconds) ---")
-    # print(pivot_table)
 
-    #Task 4
-    dual = sklearnSVC(dual=True)
-    df_results = run_scalability_test(dual, d_scales, n_scales)
+    d_scales = [10, 50, 100]
+    n_scales = [100, 500, 5000]
+
+    generate_and_save_datasets(d_scales, n_scales)
+    #Task 3
+    svc = LinearSVC(eta=0.0000001, n_iter=1000, C=1.0)
+    df_results = run_scalability_test(svc, d_scales, n_scales)
 
 
     pivot_table = df_results.pivot(index='Samples (n)', columns='Dimensions (d)', values='Time (s)')
     print("\n--- Time Cost (Seconds) ---")
     print(pivot_table)
 
-    primal = sklearnSVC(dual=False)
+    # run_sklearn_test(d_scales, n_scales)
+
+    #Task 4
+    # dual = sklearnSVC(dual=True)
+    # df_results = run_scalability_test(dual, d_scales, n_scales)
+    #
+    #
+    # pivot_table = df_results.pivot(index='Samples (n)', columns='Dimensions (d)', values='Time (s)')
+    # print("\n--- Time Cost (Seconds) ---")
+    # print(pivot_table)
+    #
+    # primal = sklearnSVC(dual=False)
 
 
