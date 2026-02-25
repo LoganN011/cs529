@@ -1,5 +1,6 @@
 import os
 import time
+import warnings
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -97,50 +98,56 @@ def run_scalability_test(model, d_list, n_list, folder="test_data"):
     plt.show()
     return pd.DataFrame(results)
 
-def run_sklearn_test(d_list, n_list,max_iter=1000, folder="test_data"):
+
+def run_sklearn_test(d_list, n_list, max_iter=1000, folder="test_data"):
     results = []
-    losses = []
 
-    for d in d_list:
-        for n in n_list:
-            filename = f"{folder}/data_n{n}_d{d}.npz"
-
-            if not os.path.exists(filename):
-                print(f"Skipping: {filename} not found.")
-                continue
-
-            data = np.load(filename)
-            X, y = data['X'], data['y']
-
-            # dual = sklearnSVC(dual=True,loss='hinge')
-            # primal = sklearnSVC(dual=False,loss='hinge')
-            total_time = 0
-            for i in range(1,max_iter+1):
-                clf = sklearnSVC(dual=True,loss='hinge',max_iter=i)
-
-                start_time = time.time()
-                clf.fit(X, y)
-                elapsed = time.time() - start_time
-
-                # Track the total cumulative time and current loss
-                total_time += elapsed
-                decision = clf.decision_function(X)
-                loss = hinge_loss(y, decision)
-                losses.append(loss)
+    for is_dual in [True, False]:
+        version_name = 'Dual' if is_dual else 'Primal'
 
 
-            plt.plot(range(1, len(losses) + 1), losses, linestyle='-', color='blue')
-            plt.xlabel('Epochs')
-            plt.ylabel('Loss')
-            plt.title(f'Scalability Test: D={d}, N={n}')
-            plt.tight_layout()
-            plt.show()
+        fig, axes = plt.subplots(len(d_list), len(n_list),figsize=(5 * len(n_list), 4 * len(d_list)))
+        axes_flat = axes.flatten()
+        plot_idx = 0
 
-            results.append({
-                'Samples (n)': n,
-                'Dimensions (d)': d,
-                'Time (s)': round(total_time, 4)
-            })
+        for d in d_list:
+            for n in n_list:
+                filename = f"{folder}/data_n{n}_d{d}.npz"
+
+                if not os.path.exists(filename):
+                    print(f"Skipping: {filename} not found.")
+                    plot_idx += 1
+                    continue
+
+                data = np.load(filename)
+                X, y = data['X'], data['y']
+
+                losses = []
+                for i in range(1, max_iter + 1):
+                    model = sklearnSVC(dual=is_dual, max_iter=i,random_state=1,penalty='l2')
+                    with warnings.catch_warnings():
+                        warnings.simplefilter("ignore")
+                        model.fit(X, y)
+
+                    decision = model.decision_function(X)
+                    loss = hinge_loss(y, decision)
+                    losses.append(loss)
+
+                ax = axes_flat[plot_idx]
+                color = 'red' if is_dual else 'blue'
+
+                ax.plot(range(1, len(losses) + 1), losses, color=color)
+                ax.set_title(f'{version_name}: n={n}, d={d}')
+                ax.set_xlabel('Epochs/Iter')
+                ax.set_ylabel('Loss')
+
+                plot_idx += 1
+
+        plt.suptitle(f"Scalability Test: {version_name} Version", fontsize=16)
+        plt.tight_layout()
+        plt.show()
+
+    return results
 
 
 def generate_and_save_datasets(d_list, n_list, u_val=100, folder="test_data"):
@@ -181,15 +188,16 @@ if __name__ == "__main__":
 
     generate_and_save_datasets(d_scales, n_scales)
     #Task 3
-    svc = LinearSVC(eta=0.0000001, n_iter=1000, C=1.0)
-    df_results = run_scalability_test(svc, d_scales, n_scales)
+    # svc = LinearSVC(eta=0.0000001, n_iter=1000, C=1.0)
+    # df_results = run_scalability_test(svc, d_scales, n_scales)
+    #
+    #
+    # pivot_table = df_results.pivot(index='Samples (n)', columns='Dimensions (d)', values='Time (s)')
+    # print("\n--- Time Cost (Seconds) ---")
+    # print(pivot_table)
 
 
-    pivot_table = df_results.pivot(index='Samples (n)', columns='Dimensions (d)', values='Time (s)')
-    print("\n--- Time Cost (Seconds) ---")
-    print(pivot_table)
-
-    # run_sklearn_test(d_scales, n_scales)
+    run_sklearn_test(d_scales, n_scales)
 
     #Task 4
     # dual = sklearnSVC(dual=True)
