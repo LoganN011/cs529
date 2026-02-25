@@ -37,8 +37,8 @@ class LinearSVC:
                 if val >= 1:
                     self.w_ -= self.eta * (2 * (1 / self.C) * self.w_)
                 else:
-                    self.w_ -= self.eta * (2 * (1 / self.C) * self.w_ - np.dot(y_copy[i], X[i]))
-                    self.b_ -= self.eta * -y_copy[i]
+                    self.w_ -= self.eta * (self.w_ - self.C * y_copy[i] * X[i])
+                    self.b_ -= self.eta * (-self.C * y_copy[i])
 
                 loss += max(0, 1 - val)
 
