@@ -21,7 +21,7 @@ def make_classification(d,n,u,random_state=None,return_line=False):
         return X_train, X_test, y_train, y_test
 
 if __name__ == "__main__":
-
+    #Task 2
     X_train, X_test, y_train, y_test,a = make_classification(d=2, n=100, u=10,random_state=1,return_line=True)
     X_combined = np.vstack((X_train, X_test))
     y_combined = np.hstack((y_train, y_test))

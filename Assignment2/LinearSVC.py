@@ -100,8 +100,6 @@ def run_scalability_test(model, d_list, n_list, folder="test_data"):
 
 
 def run_sklearn_test(d_list, n_list, max_iter=1000, folder="test_data"):
-    results = []
-
     for is_dual in [True, False]:
         version_name = 'Dual' if is_dual else 'Primal'
 
@@ -147,8 +145,34 @@ def run_sklearn_test(d_list, n_list, max_iter=1000, folder="test_data"):
         plt.tight_layout()
         plt.show()
 
-    return results
+def run_sklearn_time_test(model,d_list, n_list,folder="test_data"):
+    results = []
 
+    for d in d_list:
+        for n in n_list:
+            filename = f"{folder}/data_n{n}_d{d}.npz"
+
+            if not os.path.exists(filename):
+                print(f"Skipping: {filename} not found.")
+                continue
+
+            data = np.load(filename)
+            X, y = data['X'], data['y']
+
+            start_time = time.time()
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                model.fit(X, y)
+            end_time = time.time()
+            elapsed_time = end_time - start_time
+
+            results.append({
+                'Samples (n)': n,
+                'Dimensions (d)': d,
+                'Time (s)': round(elapsed_time, 4)
+            })
+
+    return pd.DataFrame(results)
 
 def generate_and_save_datasets(d_list, n_list, u_val=100, folder="test_data"):
     if not os.path.exists(folder):
@@ -168,46 +192,47 @@ def generate_and_save_datasets(d_list, n_list, u_val=100, folder="test_data"):
 
 
 if __name__ == "__main__":
-    # X,X_test, Y, Y_test = make_classification(d=2, n=100, u=10,random_state=1)
-    # X_combined = np.vstack((X, X_test))
-    # y_combined = np.hstack((Y, Y_test))
-    # svc = LinearSVC(eta=0.0001, n_iter=1000, C=10.0)
-    # svc.fit(X, Y)
-    # plot_decision_regions(X_combined, y_combined,classifier=svc,test_idx=range(len(X),len(X_combined)))
-    # plt.legend(loc='upper left')
-    # plt.tight_layout()
-    # plt.show()
-
-
+    #Task 1
+    X,X_test, Y, Y_test = make_classification(d=2, n=100, u=10,random_state=1)
+    X_combined = np.vstack((X, X_test))
+    y_combined = np.hstack((Y, Y_test))
+    svc = LinearSVC(eta=0.0001, n_iter=1000, C=10.0)
+    svc.fit(X, Y)
+    plot_decision_regions(X_combined, y_combined,classifier=svc,test_idx=range(len(X),len(X_combined)))
+    plt.legend(loc='upper left')
+    plt.tight_layout()
+    plt.show()
     #Task 3 and 4
-
-
-
     d_scales = [10, 50, 100]
     n_scales = [100, 500, 5000]
 
     generate_and_save_datasets(d_scales, n_scales)
     #Task 3
-    # svc = LinearSVC(eta=0.0000001, n_iter=1000, C=1.0)
-    # df_results = run_scalability_test(svc, d_scales, n_scales)
-    #
-    #
-    # pivot_table = df_results.pivot(index='Samples (n)', columns='Dimensions (d)', values='Time (s)')
-    # print("\n--- Time Cost (Seconds) ---")
-    # print(pivot_table)
+    svc = LinearSVC(eta=0.0000001, n_iter=1000, C=1.0)
+    df_results = run_scalability_test(svc, d_scales, n_scales)
 
 
-    run_sklearn_test(d_scales, n_scales)
+    pivot_table = df_results.pivot(index='Samples (n)', columns='Dimensions (d)', values='Time (s)')
+    print("\n--- Time Cost (Seconds) ---")
+    print(pivot_table)
+
 
     #Task 4
-    # dual = sklearnSVC(dual=True)
-    # df_results = run_scalability_test(dual, d_scales, n_scales)
-    #
-    #
-    # pivot_table = df_results.pivot(index='Samples (n)', columns='Dimensions (d)', values='Time (s)')
-    # print("\n--- Time Cost (Seconds) ---")
-    # print(pivot_table)
-    #
-    # primal = sklearnSVC(dual=False)
+    run_sklearn_test(d_scales, n_scales)
+    dual = sklearnSVC(dual=True)
+    primal = sklearnSVC(dual=False)
+
+    df_results_dual = run_sklearn_time_test(dual,d_scales, n_scales)
+    df_results_primal = run_sklearn_time_test(primal,d_scales, n_scales)
+
+
+    pivot_table_dual = df_results_dual.pivot(index='Samples (n)', columns='Dimensions (d)', values='Time (s)')
+    print("\n--- Time Cost (Seconds) For Dual---")
+    print(pivot_table_dual)
+
+    pivot_table_primal = df_results_primal.pivot(index='Samples (n)', columns='Dimensions (d)', values='Time (s)')
+    print("\n--- Time Cost (Seconds) For Primal---")
+    print(pivot_table_primal)
+
 
 
