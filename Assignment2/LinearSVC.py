@@ -196,7 +196,7 @@ if __name__ == "__main__":
     X,X_test, Y, Y_test = make_classification(d=2, n=100, u=10,random_state=1)
     X_combined = np.vstack((X, X_test))
     y_combined = np.hstack((Y, Y_test))
-    svc = LinearSVC(eta=0.0001, n_iter=1000, C=10.0)
+    svc = LinearSVC(eta=0.00001, n_iter=1000, C=1.0)
     svc.fit(X, Y)
     plot_decision_regions(X_combined, y_combined,classifier=svc,test_idx=range(len(X),len(X_combined)))
     plt.legend(loc='upper left')
@@ -208,7 +208,7 @@ if __name__ == "__main__":
 
     generate_and_save_datasets(d_scales, n_scales)
     #Task 3
-    svc = LinearSVC(eta=0.0000001, n_iter=1000, C=1.0)
+    svc = LinearSVC(eta=0.00001, n_iter=1000, C=1.0)
     df_results = run_scalability_test(svc, d_scales, n_scales)
 
 
