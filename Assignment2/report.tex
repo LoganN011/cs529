@@ -1,6 +1,7 @@
 \documentclass{article}
 \usepackage{amsmath}
 \usepackage{graphicx} 
+\usepackage{booktabs}
 
 \title{Assignment 2: Scalability of Support Vector Machines}
 \author{Logan Nunno }
@@ -11,6 +12,9 @@
 \maketitle
 
 \section{Task 1}
+The data structures I used for this part were numpy array for the weights and the x input features. This was used to make doing dot products and any other liner algebra operations faster because numpy is highly optimized. I also used a list to keep track of the losses of the losses during each of the epochs. The algorithms that were used were Stochastic Gradient Descent (SGD), Hinge loss, and L2 Regularization. SGD is used to calculate the margin between the sample and its possible label. It does this for every sample by multiplying the true label and the dot product of the label and the weight plus the bias. This value given is used for the hinge loss function. the hinge loss function checks if the points is correctly classified and outside of the margin. If it is outside of the margin then it updates the weights by shrinking. If it is inside or the weight is wrong then it updates weights to both shrink the vector and move the decision boundary to better classify the current point. We use L2 Regularization to prevent overfitting of the data by penalizing the squared magnitude of the weights. This makes it so we try and maximize the margin to the hyperplane without overfitting the data.
+
+The functions that were implemented in the class were init which will initialize the basic values of the LinearSVC. It can be given the learning rate, number of iterations, a random state, and a regularization parameter for use in L2 regularization. We have have a fit function that will be given the set of features and the true labels. This function will train the model based on the provided set of data. The net input function computes the preactivation value for a given input and the last is the predict function that takes a given input and makes a predication for the given sample. 
 
 \section{Task 2}
 Figure \ref{fig:demo_classification} is the provided demo of the make classification function. This function makes a random decision plane and uses that to make data points on both sides of the boundary. The figure makes a data set with values of $d=2,n=100,\text{ and } u=10$
@@ -23,12 +27,32 @@ Figure \ref{fig:demo_classification} is the provided demo of the make classifica
 
 The figure shows the too different classes of data $(-1,1)$. It will also make the data into two different sets of data. The first is the training set that is 70\% of the data these points are represent as the normal points of each of the classes. The second is the test set where the data is marked with circles around the points. The decision boundary shown in the figure as a dotted line represents the vector $a$ that was used to generate the classes for the uniformly distributed data points. 
 \section{Task 3}
+Figure \ref{fig:personal_SVM} shows the loss convergences of 9 data sets created and tested using the custom made Linear SVM made in task 1. The data sets were made using the tool from task 2 and d was either $[10,50,100]$ and n was $[100, 500, 5000]$ and the u was 100 for all of the different sets. The SVM was tested with a learning rate of $0.0000001$, 1000 iterations, and a C value of 1. The loss convergence of the test with the data set is show in figure \ref{fig:personal_SVM}.
 \begin{figure}[htbp]
     \centering
     \includegraphics[width=1\linewidth]{Assignment2//figures/loss_of_SVM_personal.png}
     \caption{Custom Linear SVM Loss Convergence}
     \label{fig:personal_SVM}
 \end{figure}
+There is a lot of interesting things that can be seen from these loss convergence graphs. The way I am going to compare them is first by the number of samples and then see how the changing dimensions of the data effects it. In the first column we have 100 samples and we can see how the dimension of the data effects how fast the convergence happens. When $D=10$ we see that the loss convergence is relatively slow compared to when $D=50\text{ or } 100$. It takes more than 1000 iterations to reach a plateau, and when $D=50$ it takes less than 200 iterations, and the fastest is when D=100 it happens almost instantly. When we increase the number of samples to 500 we see this trend continue. We see that when $D=10$ we do not reach a plateau by the time we have 1000 iterations and we are at a higher loss than the other graphs. When $D=50$ we are still decreasing the slope so we would need more iterations to see the whole value of the lost but we can see that it is better than 10 and worse than 100. When we have $D=100$ we see that again the drop is almost instant and we reach a plateau at a zero loss. When we increase the number of samples to 5000 we see that that both $D=10 \text{ and } 50$ never get close to zero as they plateau at a loss of $0.06$ but with $D=100$ we are still decreasing at 1000 iterations but starting to plateau. 
+
+The observation that can be seen with is that when we increase the dimensions (meaning increase the features) that the model is able to find the decision boundary much more easily but each of the individual operations is more expense because of the increased vector size. We also see as we increase N and decrease the learning rate the the curve becomes smoother. When testing the code the I needed to decrease the learning rate by a lot in order for the curve to become smother so it was less effected by the changes. We see a similar thing when we increase the size of number of samples. This happens because the model is less effected by outliers and noise in the data because we take the average of the gradient. Another thing we see is that when the number of samples is very low and the number of dimensions is high we see that the model drops to 0 very fast and then is flat for the rest of the time. This means that with a low number of samples the number of iterations can be lowered by a lot in order to save time. 
+
+\begin{table}[h]
+\centering
+\caption{Time Cost (Seconds) across Dimensions and Samples}
+\label{tab:time-cost}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Samples ($n$)} & \multicolumn{3}{c}{\textbf{Dimensions ($d$)}} \\ \cmidrule(l){2-4} 
+ & \textbf{10} & \textbf{50} & \textbf{100} \\ \midrule
+100 & 0.5250 & 0.4417 & 0.4472 \\
+500 & 2.6192 & 2.4862 & 2.3241 \\
+5000 & 25.6043 & 35.3818 & 25.1191 \\ \bottomrule
+\end{tabular}
+\end{table}
+
+The time cost for each of the data sets is given in table \ref{tab:time-cost}. 
 \section{Task 4}
 
 \begin{figure}[htbp]
