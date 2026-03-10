@@ -50,12 +50,13 @@ def pca_lad_compare(data_name):
         pipe = pipe.fit(X_train, y_train)
         total_train_time = time.time() - start_time
 
-        test_acc = pipe.score(X_test, y_test)
+        preds = pipe.predict(X_test)
+        error = accuracy_score(y_test, preds)
 
         pca_lda_results.append({
             'Method': name,
             'Total Train Time (s)': round(total_train_time, 2),
-            'Test Error': 1 - round(test_acc, 4)
+            'Test Error': 1 - round(error, 4)
         })
 
     df_pca_lda = pd.DataFrame(pca_lda_results)
