@@ -64,5 +64,50 @@ def pca_lad_compare(data_name):
     print(f"\n--- Table for {data_name}: PCA vs LDA ---")
     print(df_pca_lda.to_string(index=False))
 
-pca_lad_compare('mnist_784')
-pca_lad_compare('Fashion-MNIST')
+
+def compare_kernels(data_name):
+    kernels = {
+        'linear' : SVC(kernel='linear',C=1),
+        'rbf' : SVC(kernel='rbf',C=1,gamma=0.1),
+        'poly' : SVC(kernel='poly',C=1,gamma=0.1,degree=2),
+    }
+
+    pca_vals = [50,100,200]
+
+    for name, kernel in kernels.items():
+        for pca_val in pca_vals:
+
+            if data_name == 'mnist_784':
+                X_train, X_test, y_train, y_test = digit_data()
+            else:
+                X_train, X_test, y_train, y_test = fashion_data()
+
+            pipe = Pipeline([
+                ('scaler', StandardScaler()),
+                ('reducer', PCA(n_components=pca_val)),
+                ('svc', kernel),
+            ])
+
+            X_train = pipe.transform(X_train)
+            X_test = pipe.transform(X_test)
+
+            start_time = time.time()
+            pipe = pipe.fit(X_train, y_train)
+            total_train_time = time.time() - start_time
+
+            preds = pipe.predict(X_test)
+            error = accuracy_score(y_test, preds)
+
+            print(f'name{name}, pca_val{pca_val}')
+            print(total_train_time)
+            print(error)
+
+
+
+
+
+
+# pca_lad_compare('mnist_784')
+# pca_lad_compare('Fashion-MNIST')
+
+compare_kernels('mnist_784')
