@@ -21,7 +21,7 @@ def fashion_data():
     mnist_fashion_images, mnist_fashion_labels  = mnist_fashion.data, mnist_fashion.target
     return mnist_fashion_images[:60000],mnist_fashion_images[60000:], mnist_fashion_labels[:60000], mnist_fashion_labels[60000:]
 
-X_train,X_test,y_train,y_test = digit_data()
+
 
 
 def pca_lad_compare(data_name):
@@ -66,21 +66,21 @@ def pca_lad_compare(data_name):
 
 
 def compare_kernels(data_name):
+    if data_name == 'mnist_784':
+        X_train, X_test, y_train, y_test = digit_data()
+    else:
+        X_train, X_test, y_train, y_test = fashion_data()
     kernels = {
-        'linear' : SVC(kernel='linear',C=1),
-        'rbf' : SVC(kernel='rbf',C=1,gamma=0.1),
-        'poly' : SVC(kernel='poly',C=1,gamma=0.1,degree=2),
+        'linear' : SVC(kernel='linear',C=1,cache_size=2000), #hit its limit
+        'rbf' : SVC(kernel='rbf',C=10,gamma=0.01,cache_size=2000), #should lower C to help with overfitting or increase gamma
+        'poly' : SVC(kernel='poly',C=1,gamma=0.01,degree=3,cache_size=2000), #The best with low training error and low test error
     }
 
     pca_vals = [50,100,200]
 
     for name, kernel in kernels.items():
+        results = []
         for pca_val in pca_vals:
-
-            if data_name == 'mnist_784':
-                X_train, X_test, y_train, y_test = digit_data()
-            else:
-                X_train, X_test, y_train, y_test = fashion_data()
 
             pipe = Pipeline([
                 ('scaler', StandardScaler()),
@@ -88,19 +88,31 @@ def compare_kernels(data_name):
                 ('svc', kernel),
             ])
 
-            X_train = pipe.transform(X_train)
-            X_test = pipe.transform(X_test)
+            X_train_transforemed = pipe[:-1].fit_transform(X_train)
+            X_test_transforemed = pipe[:-1].transform(X_test)
 
             start_time = time.time()
-            pipe = pipe.fit(X_train, y_train)
+            pipe = pipe[-1].fit(X_train_transforemed, y_train)
             total_train_time = time.time() - start_time
 
-            preds = pipe.predict(X_test)
-            error = accuracy_score(y_test, preds)
 
-            print(f'name{name}, pca_val{pca_val}')
-            print(total_train_time)
-            print(error)
+            error_test = pipe.score(X_test_transforemed, y_test)
+            error_train = pipe.score(X_train_transforemed, y_train)
+
+            results.append({
+            'Method': name,
+            'PCA': pca_val,
+            'Total Train Time (s)': round(total_train_time, 2),
+            'Test Error':  round(1 - error_test, 4),
+            'Training Error': round(1 - error_train, 4)
+        })
+
+
+
+        df_kernal = pd.DataFrame(results)
+
+        print(f"\n--- Table for {data_name}: Three kernels in SVC ---")
+        print(df_kernal.to_string(index=False))
 
 
 
@@ -111,3 +123,5 @@ def compare_kernels(data_name):
 # pca_lad_compare('Fashion-MNIST')
 
 compare_kernels('mnist_784')
+print('test2')
+compare_kernels('Fashion-MNIST')
