@@ -1,5 +1,8 @@
 import time
+from collections import Counter
 
+import idx2numpy
+import numpy as np
 from sklearn.datasets import fetch_openml
 import pandas as pd
 from sklearn.linear_model import LogisticRegression
@@ -12,15 +15,36 @@ from sklearn.svm import SVC
 
 
 def digit_data():
-    mnist = fetch_openml('mnist_784', version=1, as_frame=False)
-    mnist_images, mnist_labels  = mnist.data, mnist.target
-    return mnist_images[:60000], mnist_images[60000:], mnist_labels[:60000], mnist_labels[60000:]
+    train_img_path = 'mnist/train-images-idx3-ubyte'
+    train_lbl_path = 'mnist/train-labels-idx1-ubyte'
+    test_img_path = 'mnist/t10k-images-idx3-ubyte'
+    test_lbl_path = 'mnist/t10k-labels-idx1-ubyte'
+
+    X_train = idx2numpy.convert_from_file(train_img_path)
+    y_train = idx2numpy.convert_from_file(train_lbl_path)
+    X_test = idx2numpy.convert_from_file(test_img_path)
+    y_test = idx2numpy.convert_from_file(test_lbl_path)
+
+    X_train = X_train.reshape(len(X_train), -1)
+    X_test = X_test.reshape(len(X_test), -1)
+
+    return X_train, X_test, y_train, y_test
 
 def fashion_data():
-    mnist_fashion = fetch_openml('Fashion-MNIST', version=1, as_frame=False, parser='auto')
-    mnist_fashion_images, mnist_fashion_labels  = mnist_fashion.data, mnist_fashion.target
-    return mnist_fashion_images[:60000],mnist_fashion_images[60000:], mnist_fashion_labels[:60000], mnist_fashion_labels[60000:]
+    train_img_path = 'fashion/train-images-idx3-ubyte'
+    train_lbl_path = 'fashion/train-labels-idx1-ubyte'
+    test_img_path = 'fashion/t10k-images-idx3-ubyte'
+    test_lbl_path = 'fashion/t10k-labels-idx1-ubyte'
 
+    X_train = idx2numpy.convert_from_file(train_img_path)
+    y_train = idx2numpy.convert_from_file(train_lbl_path)
+    X_test = idx2numpy.convert_from_file(test_img_path)
+    y_test = idx2numpy.convert_from_file(test_lbl_path)
+
+    X_train = X_train.reshape(len(X_train), -1)
+    X_test = X_test.reshape(len(X_test), -1)
+
+    return X_train, X_test, y_train, y_test
 
 
 
@@ -31,9 +55,9 @@ def pca_lad_compare(data_name):
         X_train, X_test, y_train, y_test = fashion_data()
 
     reductions = {
-        'PCA_50': PCA(n_components=50),
-        'PCA_100': PCA(n_components=100),
-        'PCA_200': PCA(n_components=200),
+        'PCA_50': PCA(n_components=50,random_state=1),
+        'PCA_100': PCA(n_components=100,random_state=1),
+        'PCA_200': PCA(n_components=200,random_state=1),
         'LDA': LDA()
     }
 
@@ -43,7 +67,7 @@ def pca_lad_compare(data_name):
         pipe = Pipeline([
             ('scaler', StandardScaler()),
             (name, reducer),
-            ('svc', SVC(kernel='rbf'))
+            ('svc', SVC(kernel='rbf',random_state=1))
         ])
 
         start_time = time.time()
@@ -71,9 +95,9 @@ def compare_kernels(data_name):
     else:
         X_train, X_test, y_train, y_test = fashion_data()
     kernels = {
-        'linear' : SVC(kernel='linear',C=1,cache_size=2000), #hit its limit
-        'rbf' : SVC(kernel='rbf',C=10,gamma=0.01,cache_size=2000), #should lower C to help with overfitting or increase gamma
-        'poly' : SVC(kernel='poly',C=1,gamma=0.01,degree=3,cache_size=2000), #The best with low training error and low test error
+        'linear' : SVC(kernel='linear',C=1,cache_size=2000,random_state=1),
+        'rbf' : SVC(kernel='rbf',C=10,gamma=0.01,cache_size=2000,random_state=1),
+        'poly' : SVC(kernel='poly',C=1,gamma=0.01,degree=3,cache_size=2000,random_state=1),
     }
 
     pca_vals = [50,100,200]
@@ -84,7 +108,7 @@ def compare_kernels(data_name):
 
             pipe = Pipeline([
                 ('scaler', StandardScaler()),
-                ('reducer', PCA(n_components=pca_val)),
+                ('reducer', PCA(n_components=pca_val,random_state=1)),
                 ('svc', kernel),
             ])
 
@@ -92,7 +116,8 @@ def compare_kernels(data_name):
             X_test_transforemed = pipe[:-1].transform(X_test)
 
             start_time = time.time()
-            pipe = pipe[-1].fit(X_train_transforemed, y_train)
+            pipe = pipe[-1]
+            pipe.fit(X_train_transforemed, y_train)
             total_train_time = time.time() - start_time
 
 
@@ -115,6 +140,73 @@ def compare_kernels(data_name):
         print(df_kernal.to_string(index=False))
 
 
+def run_task_4_bagging(data_name):
+    if data_name == 'mnist_784':
+        X_train, X_test, y_train, y_test = digit_data()
+    else:
+        X_train, X_test, y_train, y_test = fashion_data()
+
+    kernels = {
+        'linear': SVC(kernel='linear', C=1, cache_size=2000,random_state=1),
+        'rbf': SVC(kernel='rbf', C=10, gamma=0.01, cache_size=2000,random_state=1),
+        'poly': SVC(kernel='poly', C=1, gamma=0.01, degree=3, cache_size=2000,random_state=1),
+    }
+
+    scaler = StandardScaler()
+    pca = PCA(n_components=100,random_state=1)
+
+    X_train_comp = pca.fit_transform(scaler.fit_transform(X_train))
+    X_test_comp = pca.transform(scaler.transform(X_test))
+
+    n_models = 8
+    subset_size = len(X_train_comp) // n_models
+    results = []
+
+    print(f"\n--- Starting Task 4 for {data_name} ---")
+
+    for name, base_svc in kernels.items():
+        start_single = time.time()
+        single_model = base_svc
+        single_model.fit(X_train_comp, y_train)
+        single_time = time.time() - start_single
+        single_preds = single_model.predict(X_test_comp)
+        single_error = 1 - accuracy_score(y_test, single_preds)
+
+
+        bagging_start = time.time()
+        all_subset_preds = []
+
+        for i in range(n_models):
+            start_idx = i * subset_size
+            end_idx = (i + 1) * subset_size
+            X_sub, y_sub = X_train_comp[start_idx:end_idx], y_train[start_idx:end_idx]
+
+            model = SVC(**base_svc.get_params())
+            model.fit(X_sub, y_sub)
+
+            all_subset_preds.append(model.predict(X_test_comp))
+
+        bagging_time = time.time() - bagging_start
+
+
+        all_subset_preds = np.array(all_subset_preds)
+        final_preds = []
+        for j in range(len(X_test_comp)):
+            vote = Counter(all_subset_preds[:, j]).most_common(1)[0][0]
+            final_preds.append(vote)
+
+        bagging_error = 1 - accuracy_score(y_test, final_preds)
+        results.append({
+            'Kernel': name,
+            'Single Time (s)': round(single_time, 2),
+            'Single Error': round(single_error, 4),
+            'Bagging Time (s)': round(bagging_time, 2),
+            'Bagging Error': round(bagging_error, 4)
+        })
+
+    df_results = pd.DataFrame(results)
+    print(f"\n--- Table for {data_name}: Bootstrap Aggregating ---")
+    print(df_results.to_string(index=False))
 
 
 
@@ -122,6 +214,8 @@ def compare_kernels(data_name):
 # pca_lad_compare('mnist_784')
 # pca_lad_compare('Fashion-MNIST')
 
-compare_kernels('mnist_784')
-print('test2')
-compare_kernels('Fashion-MNIST')
+# compare_kernels('mnist_784')
+# compare_kernels('Fashion-MNIST')
+
+run_task_4_bagging('mnist_784')
+run_task_4_bagging('Fashion-MNIST')
