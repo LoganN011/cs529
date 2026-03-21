@@ -162,8 +162,6 @@ def run_task_4_bagging(data_name):
     subset_size = len(X_train_comp) // n_models
     results = []
 
-    print(f"\n--- Starting Task 4 for {data_name} ---")
-
     for name, base_svc in kernels.items():
         start_single = time.time()
         single_model = base_svc
@@ -211,11 +209,11 @@ def run_task_4_bagging(data_name):
 
 
 
-# pca_lad_compare('mnist_784')
-# pca_lad_compare('Fashion-MNIST')
-
-# compare_kernels('mnist_784')
-# compare_kernels('Fashion-MNIST')
-
+pca_lad_compare('mnist_784')
+pca_lad_compare('Fashion-MNIST')
+print("Test 2 \n\n\n")
+compare_kernels('mnist_784')
+compare_kernels('Fashion-MNIST')
+print("Test 3 \n\n\n")
 run_task_4_bagging('mnist_784')
 run_task_4_bagging('Fashion-MNIST')

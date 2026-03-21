@@ -1,0 +1,74 @@
+--- Table for mnist_784: PCA vs LDA ---
+ Method  Total Train Time (s)  Test Error
+ PCA_50                 22.24      0.0288
+PCA_100                 52.39      0.0293
+PCA_200                 85.62      0.0307
+    LDA                 16.20      0.0785
+
+--- Table for Fashion-MNIST: PCA vs LDA ---
+ Method  Total Train Time (s)  Test Error
+ PCA_50                 29.18      0.1331
+PCA_100                 60.48      0.1226
+PCA_200                 99.63      0.1153
+    LDA                 23.57      0.1659
+
+
+
+
+
+--- Table for mnist_784: Three kernels in SVC ---
+Method  PCA  Total Train Time (s)  Test Error  Training Error
+linear   50                 89.28      0.0650          0.0658
+linear  100                130.97      0.0599          0.0507
+linear  200                173.68      0.0564          0.0415
+
+--- Table for mnist_784: Three kernels in SVC ---
+Method  PCA  Total Train Time (s)  Test Error  Training Error
+   rbf   50                 66.77      0.0379          0.0002
+   rbf  100                207.25      0.0519          0.0000
+   rbf  200                407.09      0.0771          0.0000
+
+--- Table for mnist_784: Three kernels in SVC ---
+Method  PCA  Total Train Time (s)  Test Error  Training Error
+  poly   50                 12.85      0.0278          0.0013
+  poly  100                 31.51      0.0252          0.0003
+  poly  200                 66.74      0.0225          0.0000
+
+
+
+--- Table for Fashion-MNIST: Three kernels in SVC ---
+Method  PCA  Total Train Time (s)  Test Error  Training Error
+linear   50                141.59      0.1637          0.1476
+linear  100                205.38      0.1523          0.1310
+linear  200                301.12      0.1493          0.1184
+
+--- Table for Fashion-MNIST: Three kernels in SVC ---
+Method  PCA  Total Train Time (s)  Test Error  Training Error
+   rbf   50                 87.16      0.1316          0.0073
+   rbf  100                184.57      0.1387          0.0008
+   rbf  200                410.98      0.1510          0.0001
+
+--- Table for Fashion-MNIST: Three kernels in SVC ---
+Method  PCA  Total Train Time (s)  Test Error  Training Error
+  poly   50                 47.01      0.1203          0.0308
+  poly  100                 58.88      0.1195          0.0072
+  poly  200                 79.91      0.1147          0.0005
+
+
+
+
+
+--- Table for mnist_784: Bootstrap Aggregating ---
+Kernel  Single Time (s)  Single Error  Bagging Time (s)  Bagging Error
+linear           132.46        0.0599             12.49         0.0644
+   rbf           180.78        0.0519             54.74         0.1033
+  poly            31.96        0.0252             11.54         0.0329
+
+
+
+
+--- Table for Fashion-MNIST: Bootstrap Aggregating ---
+Kernel  Single Time (s)  Single Error  Bagging Time (s)  Bagging Error
+linear           206.37        0.1523             43.95         0.1520
+   rbf           182.92        0.1387             56.42         0.1826
+  poly            58.65        0.1195             11.84         0.1268
