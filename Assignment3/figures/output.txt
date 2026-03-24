@@ -24,9 +24,9 @@ linear  200                173.68      0.0564          0.0415
 
 --- Table for mnist_784: Three kernels in SVC ---
 Method  PCA  Total Train Time (s)  Test Error  Training Error
-   rbf   50                 66.77      0.0379          0.0002
-   rbf  100                207.25      0.0519          0.0000
-   rbf  200                407.09      0.0771          0.0000
+   rbf   50                 16.63      0.0262          0.0128
+   rbf  100                 36.91      0.0224          0.0078
+   rbf  200                 63.16      0.0249          0.0052
 
 --- Table for mnist_784: Three kernels in SVC ---
 Method  PCA  Total Train Time (s)  Test Error  Training Error
@@ -44,9 +44,9 @@ linear  200                301.12      0.1493          0.1184
 
 --- Table for Fashion-MNIST: Three kernels in SVC ---
 Method  PCA  Total Train Time (s)  Test Error  Training Error
-   rbf   50                 87.16      0.1316          0.0073
-   rbf  100                184.57      0.1387          0.0008
-   rbf  200                410.98      0.1510          0.0001
+   rbf   50                 35.42      0.1196          0.0869
+   rbf  100                 57.47      0.1088          0.0667
+   rbf  200                 94.32      0.1036          0.0491
 
 --- Table for Fashion-MNIST: Three kernels in SVC ---
 Method  PCA  Total Train Time (s)  Test Error  Training Error
@@ -61,7 +61,7 @@ Method  PCA  Total Train Time (s)  Test Error  Training Error
 --- Table for mnist_784: Bootstrap Aggregating ---
 Kernel  Single Time (s)  Single Error  Bagging Time (s)  Bagging Error
 linear           132.46        0.0599             9.61         0.0644
-   rbf           180.78        0.0519            25.43         0.1033
+   rbf            33.08        0.0224            25.43         0.0398
   poly            31.96        0.0252             6.21         0.0329
 
 
@@ -69,5 +69,5 @@ linear           132.46        0.0599             9.61         0.0644
 --- Table for Fashion-MNIST: Bootstrap Aggregating ---
 Kernel  Single Time (s)  Single Error  Bagging Time (s)  Bagging Error
 linear           206.37        0.1523             39.92         0.1520
-   rbf           182.92        0.1387             23.18         0.1826
+   rbf            49.09        0.1088             23.18         0.1281
   poly            58.65        0.1195              5.54         0.1268

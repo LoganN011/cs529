@@ -96,7 +96,7 @@ def compare_kernels(data_name):
         X_train, X_test, y_train, y_test = fashion_data()
     kernels = {
         'linear' : SVC(kernel='linear',C=1,cache_size=2000,random_state=1),
-        'rbf' : SVC(kernel='rbf',C=10,gamma=0.01,cache_size=2000,random_state=1),
+        'rbf' : SVC(kernel='rbf',C=10,gamma=0.001,cache_size=2000,random_state=1),
         'poly' : SVC(kernel='poly',C=1,gamma=0.01,degree=3,cache_size=2000,random_state=1),
     }
 
@@ -148,7 +148,7 @@ def run_task_4_bagging(data_name):
 
     kernels = {
         'linear': SVC(kernel='linear', C=1, cache_size=2000,random_state=1),
-        'rbf': SVC(kernel='rbf', C=10, gamma=0.01, cache_size=2000,random_state=1),
+        'rbf': SVC(kernel='rbf', C=10, gamma=0.001, cache_size=2000,random_state=1),
         'poly': SVC(kernel='poly', C=1, gamma=0.01, degree=3, cache_size=2000,random_state=1),
     }
 
