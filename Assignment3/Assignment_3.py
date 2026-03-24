@@ -172,7 +172,7 @@ def run_task_4_bagging(data_name):
 
 
         bagging_start = time.time()
-        all_subset_preds = []
+        all_models = []
 
         for i in range(n_models):
             start_idx = i * subset_size
@@ -181,10 +181,15 @@ def run_task_4_bagging(data_name):
 
             model = SVC(**base_svc.get_params())
             model.fit(X_sub, y_sub)
+            all_models.append(model)
 
-            all_subset_preds.append(model.predict(X_test_comp))
 
         bagging_time = time.time() - bagging_start
+
+        all_subset_preds = []
+
+        for model in all_models:
+            all_subset_preds.append(model.predict(X_test_comp))
 
 
         all_subset_preds = np.array(all_subset_preds)
@@ -208,12 +213,12 @@ def run_task_4_bagging(data_name):
 
 
 
-
-pca_lad_compare('mnist_784')
-pca_lad_compare('Fashion-MNIST')
-print("Test 2 \n\n\n")
-compare_kernels('mnist_784')
-compare_kernels('Fashion-MNIST')
-print("Test 3 \n\n\n")
-run_task_4_bagging('mnist_784')
-run_task_4_bagging('Fashion-MNIST')
+if __name__ == '__main__':
+    # pca_lad_compare('mnist_784')
+    # pca_lad_compare('Fashion-MNIST')
+    # print("Test 2 \n\n\n")
+    # compare_kernels('mnist_784')
+    # compare_kernels('Fashion-MNIST')
+    # print("Test 3 \n\n\n")
+    run_task_4_bagging('mnist_784')
+    run_task_4_bagging('Fashion-MNIST')

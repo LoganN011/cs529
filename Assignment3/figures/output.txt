@@ -60,15 +60,14 @@ Method  PCA  Total Train Time (s)  Test Error  Training Error
 
 --- Table for mnist_784: Bootstrap Aggregating ---
 Kernel  Single Time (s)  Single Error  Bagging Time (s)  Bagging Error
-linear           132.46        0.0599             12.49         0.0644
-   rbf           180.78        0.0519             54.74         0.1033
-  poly            31.96        0.0252             11.54         0.0329
-
+linear           132.46        0.0599             9.61         0.0644
+   rbf           180.78        0.0519            25.43         0.1033
+  poly            31.96        0.0252             6.21         0.0329
 
 
 
 --- Table for Fashion-MNIST: Bootstrap Aggregating ---
 Kernel  Single Time (s)  Single Error  Bagging Time (s)  Bagging Error
-linear           206.37        0.1523             43.95         0.1520
-   rbf           182.92        0.1387             56.42         0.1826
-  poly            58.65        0.1195             11.84         0.1268
+linear           206.37        0.1523             39.92         0.1520
+   rbf           182.92        0.1387             23.18         0.1826
+  poly            58.65        0.1195              5.54         0.1268
