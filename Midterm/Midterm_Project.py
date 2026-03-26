@@ -48,7 +48,7 @@ def fashion_data():
 
 
 
-def pca_lad_compare(data_name):
+def pca_lda_compare(data_name):
     if data_name == 'mnist_784':
         X_train, X_test, y_train, y_test = digit_data()
     else:
@@ -214,11 +214,11 @@ def run_task_4_bagging(data_name):
 
 
 if __name__ == '__main__':
-    pca_lad_compare('mnist_784')
-    pca_lad_compare('Fashion-MNIST')
-    print("Test 2 \n\n\n")
+    # pca_lda_compare('mnist_784')
+    # pca_lda_compare('Fashion-MNIST')
+    # print("Test 2 \n\n\n")
     compare_kernels('mnist_784')
     compare_kernels('Fashion-MNIST')
-    print("Test 3 \n\n\n")
-    run_task_4_bagging('mnist_784')
-    run_task_4_bagging('Fashion-MNIST')
+    # print("Test 3 \n\n\n")
+    # run_task_4_bagging('mnist_784')
+    # run_task_4_bagging('Fashion-MNIST')
