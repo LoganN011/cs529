@@ -1,0 +1,147 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{graphicx} 
+\usepackage{booktabs}
+
+\title{Midterm Project: Machine Learning Pipeline, Hyperparameter Tuning, and Ensemble Learning}
+\author{Logan Nunno }
+\date{February 2026}
+
+\begin{document}
+
+\maketitle
+\section{Implementation} 
+In this project, I implemented a machine learning pipeline for image classification using the MNIST and Fashion-MNIST datasets. Each image in the datasets is $28 \times 28$, and I flattened them into 784-dimensional vectors for processing. The datasets were loaded from IDX files using the \texttt{idx2numpy} library. After loading, the data was split into training and testing sets. A preprocessing step was applied using \texttt{StandardScaler} to standardize the features based only on the training data, and the same transformation was applied to the test data. For dimensionality reduction, I used both Principal Component Analysis (PCA) and Linear Discriminant Analysis (LDA). PCA was tested with 50, 100, and 200 components, while LDA was applied directly and reduced the number of components to 9 because we have a total of 10 classes in each of the datasets. For classification, I used Support Vector Classifiers (SVC) with three different kernels: linear, radial basis function (RBF), and polynomial. These were implemented using \texttt{scikit-learn} pipelines to ensure consistent preprocessing and transformation. When comparing the use of the different values of PCA and LDA I used RBF as my constant classifier to compare the timing and the test error. I measured training time to include all steps in the pipeline (standardization, dimensionality reduction, and classification). When comparing the different kernels I used all 3 different PCA values so we could see the effect of each on each kernel. The timing was done so the reduction of the data was done before we classified the data so the only thing that was timed was the classification using the kernels. For the ensemble learning portion, I implemented bootstrap aggregating manually. The training data was split into 8 disjoint subsets, and an SVC model was trained on each subset. Final predictions were obtained by majority voting across all models. This was done by splitting the data into sets based on the number of models we are using (8) and then training the models based on each of the sets. Then we used the models to vote on each of the samples in the test set and the class with the most votes would be the one that was selected as the classification  for the given test sample. 
+
+\section{Hyperparameter Settings}
+The hyperparameters for each kernel were selected based on observed performance on both training and test datasets. When selecting hyperparameters it was useful to have the same random state and then update the individual kernels based on the results that were outputted. For the linear kernel I knew going into this that it would be too simple for the problem that needs to be solved. When testing it I started out with a C value of 1 and tried to increase the C and decrease it but the error was staying relatively similar in both cases so I used a C value of 1. For the RBF kernel I started out with a value of 1 for C and a gamma of 0.01. Doing this there was a good amount of training error. This meant to me that I needed to make the model more complicated or train the model for longer so it could better understand the training data. It showed classic signs of underfitting. To fix this I started updating the C value and I fixed in on a value of 10 being the best. This was where the training error was near zero but was also zero for some of the values so I thought it was overfitting at this point. I then updated the gamma and found that a gamma of 0.001 was the best where there was some training error but not a lot and the test error was reduced. For the Poly Kernel I started out with C being 2, gamma being 0.01 and the degree being 2. When running with these values I had a lot of training error and even more test error so this made me think that it was too simple. I experimented with higher polynomial degrees to increase model complexity, but large degrees led to severe overfitting, so I reduced it to degree 3 which provided a better balance between bias and variance. These are the final values for the hyperparameters that I found:
+\begin{itemize}
+    \item Linear kernel: $C = 1$
+    \item RBF kernel: $C = 10$, $\gamma = 0.001$
+    \item Polynomial kernel: $C = 1$, $\gamma = 0.01$, degree $= 3$
+\end{itemize}
+
+\section{PCA V.S LDA}
+In this section, I compared two dimensionality techniques PCA and LDA. The PCA tests were conducted at three scales 50, 100, and 200 components to observe how feature retention impacts both performance and computational cost. I used a constant classifier of an SVC classifier with an RBF kernel so I was able to just compare the effects of the dimensionality reduction.  
+
+\subsection*{MNIST Results}
+
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+Method & Train Time (s) & Test Error \\
+\midrule
+PCA (50)  & 22.24 & 0.0288 \\
+PCA (100) & 52.39 & 0.0293 \\
+PCA (200) & 85.62 & 0.0307 \\
+LDA       & 16.20 & 0.0785 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection*{Fashion-MNIST Results}
+
+\begin{center}
+\begin{tabular}{lcc}
+\toprule
+Method & Train Time (s) & Test Error \\
+\midrule
+PCA (50)  & 29.18 & 0.1331 \\
+PCA (100) & 60.48 & 0.1226 \\
+PCA (200) & 99.63 & 0.1153 \\
+LDA       & 23.57 & 0.1659 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Across both datasets, LDA was significantly faster to train than any of the PCA configurations. This is as we might think because LDA reduces the number of features to $C-1$ where C is the number of classes so in both datasets there are 10 total classes. This means that LDA only has 9 features while PCA has 50, 100, and 200 features. 
+
+While LDA is always faster this comes at a cost to accuracy. Across all tests it produced higher test error than any of the PCA cases. For MNIST, PCA with 50 components achieved a test error of 2.88\% where LDA has an error of 7.85\%. This suggests that LDA may discard useful variance that is important for nonlinear classification with the RBF kernel.  This is in contrast the PCA cases where the RBF kernel where the variance is preserved allowing the RBF kernel to improve its classification. 
+
+When we look at the PCA cases we see that Increasing the number of components from 50 to 200 increased the training time significantly. In some cases we see the training time nearly quadrupling. This all happens without always providing a proportional decrease in error. This is most shown in the Fashion dataset where the time takes over 3 times as long and the error only decreased by 1.5\%. With the MNIST dataset we see that when we increase the number of PCA components the error does not change that much but it did slightly increase when we increase the number of components. This might have happened because the early components are the most important and give us the most info but when we add more we are getting diminishing returns and we could be introducing noise to the data as it is not as clean.  
+
+
+\section{Three kernels in SVC}
+\subsection*{MNIST Results}
+\begin{center}
+\begin{tabular}{lcccc}
+\toprule
+Kernel & PCA & Train Time (s) & Test Error & Training Error \\
+\midrule
+Linear & 50  & 89.28  & 0.0650 & 0.0658 \\
+Linear & 100 & 130.97 & 0.0599 & 0.0507 \\
+Linear & 200 & 173.68 & 0.0564 & 0.0415 \\
+\midrule
+RBF    & 50  & 16.63  & 0.0262 & 0.0128 \\
+RBF    & 100 & 36.91 & 0.0224 & 0.0078 \\
+RBF    & 200 & 63.16 & 0.0249 & 0.0052 \\
+\midrule
+Poly   & 50  & 12.85  & 0.0278 & 0.0013 \\
+Poly   & 100 & 31.51  & 0.0252 & 0.0003 \\
+Poly   & 200 & 66.74  & 0.0225 & 0.0000 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+For the MNIST dataset, both RBF and polynomial kernels achieved strong performance with some of the lowest errors among the 3 kernels with the lowest test error observed for polynomial at PCA = 200 (2.25\%) and RBF at PCA = 100 (2.24\%). RBF and polynomial kernels achieved nearly identical best performance, with RBF slightly better at PCA=100 and polynomial slightly better at PCA=200. It did slight increase the test error as we increase the number of components but at the same time the training error decrease as we did this. We also see that the linear took the most amount of time and it also had the highest error in both testing a training. This is because it is too simple for this type of dataset where the RBF and polynomial kernels are better at dealing with complex datasets. Although the polynomial kernel achieves near-zero training error, the test error remains low, suggesting good generalization rather than severe overfitting that we might normally see when the training error is near zero. 
+
+\subsection*{Fashion-MNIST Results}
+
+\begin{center}
+\begin{tabular}{lcccc}
+\toprule
+Kernel & PCA & Train Time (s) & Test Error & Training Error \\
+\midrule
+Linear & 50  & 141.59 & 0.1637 & 0.1476 \\
+Linear & 100 & 205.38 & 0.1523 & 0.1310 \\
+Linear & 200 & 301.12 & 0.1493 & 0.1184 \\
+\midrule
+RBF    & 50  & 35.42  & 0.1196 & 0.0869 \\
+RBF    & 100 & 57.47 & 0.1088 & 0.0667 \\
+RBF    & 200 & 94.32 & 0.1036 & 0.0491 \\
+\midrule
+Poly   & 50  & 47.01  & 0.1203 & 0.0308 \\
+Poly   & 100 & 58.88  & 0.1195 & 0.0072 \\
+Poly   & 200 & 79.91  & 0.1147 & 0.0005 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+For the Fashion dataset we see very similar results as we saw in the MNIST dataset but with increased Training and test errors. The RBF kernel achieved the best overall performance reaching an error of reaching a test error of 10.36\% at PCA = 200. The polynomial kernel also performed well but is overall worse than RBF but did complete the training faster. Just like we saw in the MNIST dataset the linear kernel did not preform well. This suggests that the data is not linearly separable so we need a more complicated kernel than linear. \\
+
+Overall, the linear kernel was the most computationally expensive kernel and this happens more as we increased the number of PCA components. This can be seen best in the Fashion dataset where the 200 components it takes over 300 seconds. With the high training and test errors this suggests that a linear boundary is insufficient for the datasets. The RBF kernel offered the best balance. With the tuned hyperparameters it achieved the lowest test error for the MNIST while also keeping its training time low. The polynomial kernel performed very well on the training data reaching near zero error for 200 components. However, it showed slight sings of overfitting compared to the RBF kernel as the test error was slightly higher than it in all cases. It was faster then the RBF kernel in training speed so there is trade offs to be made in when picking between the two.
+
+\section{Bootstrap Aggregating}
+
+\subsection*{MNIST Results}
+
+\begin{center}
+\begin{tabular}{lcccc}
+\toprule
+Kernel & Single Time (s) & Single Error & Bagging Time (s) & Bagging Error \\
+\midrule
+Linear & 132.46 & 0.0599 & 9.61 & 0.0644 \\
+RBF    & 33.08 & 0.0224 &  4.37 & 0.0398 \\
+Poly   & 31.96  & 0.0252 & 6.21 & 0.0329 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\subsection*{Fashion-MNIST Results}
+
+\begin{center}
+\begin{tabular}{lcccc}
+\toprule
+Kernel & Single Time (s) & Single Error & Bagging Time (s) & Bagging Error \\
+\midrule
+Linear & 206.37 & 0.1523 & 39.92 & 0.1520 \\
+RBF    & 49.09 & 0.1088 & 4.62 & 0.1281 \\
+Poly   & 58.65  & 0.1195 & 5.54 & 0.1268 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Bagging did not generally improve performance compared to a single SVC. For MNIST, both RBF and polynomial kernels experienced noticeable increases in test error when using bagging. This suggests that dividing the data into disjoint subsets reduces the effectiveness of each individual model. For Fashion-MNIST, bagging had minimal impact on the linear kernel but worsened performance for RBF and polynomial kernels. While bagging reduced training time per model, the overall predictive performance declined.\\ 
+Overall, The most striking result is the efficiency of bagging. By training 8 disjoint subsets rather than the full dataset the training time dropped by nearly 90\% on all test cases. In these results the bagging error is slightly higher than a single model error. This is likely because each base model only see 1/8 of the total data. While this significantly reduces the computational cost this leads to an increased error for the models. So overall, bagging proved to be a powerful tool for scaling SVCs. While there was minor trade-off in accuracy, the improved training can be worth the loss in accuracy if training time is a big factor. 
+
+\end{document}
