@@ -12,7 +12,7 @@ def preprocessor(text):
     text = re.sub('<[^>]*>', '', text)
     emoticons = re.findall(r'(?::|;|=)(?:-)?(?:\)|\(|D|P)',
                            text)
-    text = (re.sub('[\W]+', ' ', text.lower()) +
+    text = (re.sub(r'[\W]+', ' ', text.lower()) +
             ' '.join(emoticons).replace('-', ''))
     return text
 
@@ -24,16 +24,17 @@ X_train, X_test, y_train, y_test = train_test_split(
 
 tfidf = TfidfVectorizer(strip_accents=None,
                         lowercase=False,
-                        preprocessor=None)
+                        preprocessor=None,
+                        max_features=5000)
 
 X_train = tfidf.fit_transform(X_train)
 X_test = tfidf.transform(X_test)
 
 X_train = torch.tensor(X_train.toarray(), dtype=torch.float32)
-y_train = torch.tensor(y_train, dtype=torch.float32).view(-1, 1)
+y_train = torch.tensor(y_train.values, dtype=torch.float32).view(-1, 1)
 
 X_test = torch.tensor(X_test.toarray(), dtype=torch.float32)
-y_test = torch.tensor(y_test, dtype=torch.float32).view(-1, 1)
+y_test = torch.tensor(y_test.values, dtype=torch.float32).view(-1, 1)
 
 print("test")
 
