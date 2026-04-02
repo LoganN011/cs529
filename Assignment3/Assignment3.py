@@ -52,69 +52,82 @@ class BasicNN(nn.Module):
         super(BasicNN, self).__init__()
         self.fc1 = nn.Linear(input_dim, 512)
         self.bn1 = nn.BatchNorm1d(512)
-        self.fc2 = nn.Linear(512, 128)
-        self.bn2 = nn.BatchNorm1d(128)
-        self.fc3 = nn.Linear(128, 64)
-        self.bn3 = nn.BatchNorm1d(64)
+        self.fc2 = nn.Linear(512, 64)
+        self.bn2 = nn.BatchNorm1d(64)
+        # self.fc3 = nn.Linear(128, 64)
+        # self.bn3 = nn.BatchNorm1d(64)
         self.out = nn.Linear(64, 1)
 
     def forward(self, x):
         x = torch.nn.functional.relu(self.bn1(self.fc1(x)))
         x = torch.nn.functional.relu(self.bn2(self.fc2(x)))
-        x = torch.nn.functional.relu(self.bn3(self.fc3(x)))
+        # x = torch.nn.functional.relu(self.bn3(self.fc3(x)))
         x = torch.sigmoid(self.out(x))
         return x
 
 
+def train_validate_model(model, train_data, test_data):
+   train_losses = []
+   val_losses = []
+   train_accuracies = []
+   val_accuracies = []
+   learning_rate = 0.00001
+   num_epochs = 5
+   criterion = torch.nn.MSELoss()
+   optimizer =torch.optim.Adam(model.parameters(), lr=learning_rate,weight_decay=1e-4)
+   train_loader = DataLoader(train_data, batch_size=64, shuffle=True)
+   test_loader = DataLoader(test_data, batch_size=64, shuffle=False)
 
-def testNN(model,data_set):
-    learning_rate = 0.000045
-    epochs = 5
+   for epoch in range(num_epochs):
+       model.train()
+       running_loss = 0.0
+       correct = 0
+       total = 0
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate,weight_decay=1e-4)
-    L = torch.nn.BCELoss()
+       for images, labels in train_loader:
+           outputs = model(images)
+           loss = criterion(outputs, labels)
+           loss.backward()
+           optimizer.step()
 
-    train_data = DataLoader(data_set, batch_size=64, shuffle=True)
+           running_loss += loss.item()
+           predicted = (outputs > 0.5).float()
+           correct += (predicted.view(-1) == labels.view(-1)).sum().item()
+           total += labels.size(0)
 
-    model.train()
-    for epoch in range(epochs):
-        running_loss = 0.0
-        for(x,y) in train_data:
-            x, y = x.to(device), y.to(device)
+           optimizer.zero_grad()
 
-            output = model.forward(x)
-            loss = L(output, y)
-            loss.backward()
-            optimizer.step()
-            model.zero_grad()
-            running_loss += loss.item()
-
-        avg_loss = running_loss / len(train_data)
-        print(f"Epoch [{epoch + 1}/{epochs}], Loss: {avg_loss:.4f}")
-    return model
+       epoch_loss = running_loss / len(train_loader)
+       epoch_accuracy = 100 * correct / total
+       train_losses.append(epoch_loss)
+       train_accuracies.append(epoch_accuracy)
 
 
-def evaluate(model, test_dataset):
-    model.eval()
-    test_loader = DataLoader(test_dataset, batch_size=100)
-    correct = 0
-    total = 0
+       model.eval()
+       test_loss = 0.0
+       correct = 0
+       total = 0
 
-    with torch.no_grad():
-        for x, y in test_loader:
-            x, y = x.to(device), y.to(device)
-            outputs = model(x)
-            predicted = torch.round(outputs)
-            total += y.size(0)
-            correct += (predicted == y).sum().item()
+       with torch.no_grad():
+           for images, labels in test_loader:
+               outputs = model(images)
+               loss = criterion(outputs, labels)
+               test_loss += loss.item()
+               predicted = (outputs > 0.5).float()
+               correct += (predicted.view(-1) == labels.view(-1)).sum().item()
+               total += labels.size(0)
 
-    print(f'Accuracy on test data: {100 * correct / total:.2f}%')
+       test_loss /= len(test_loader)
+       val_accuracy = 100 * correct / total
+       val_losses.append(test_loss)
+       val_accuracies.append(val_accuracy)
+
+       print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {epoch_loss:.4f}, Accuracy: {epoch_accuracy:.2f}%, Val Loss: {test_loss:.4f}, Val Accuracy: {val_accuracy:.2f}%')
+   return train_losses, val_losses, train_accuracies, val_accuracies
 
 if __name__ == "__main__":
     print(device)
     train_data, test_data = getData()
     model = BasicNN(train_data.tensors[0].shape[1]).to(device)
-    trained_model = testNN(model, train_data)
-
-    evaluate(trained_model, test_data)
+    train_validate_model(model, train_data, test_data)
 
