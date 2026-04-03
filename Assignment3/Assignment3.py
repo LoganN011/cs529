@@ -93,7 +93,7 @@ def test_logistic_regression(train_data, test_data):
     y_pred = lr_model.predict(X_train)
     train_accuracy = accuracy_score(y_train, y_pred)
 
-    print(f'Training Accuracy: {test_accuracy* 100:.2f}%')
+    print(f'Training Accuracy: {train_accuracy* 100:.2f}%')
     print(f"Test Accuracy: {test_accuracy * 100:.2f}%")
     print(f"Logistic Regression Training Time: {end_time - start_time:.2f}s")
 
