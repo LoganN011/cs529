@@ -53,3 +53,12 @@ Total Training Time: 10.53s
 Average 5-Fold Validation Accuracy: 89.34%
 Final Test Accuracy after K-Fold: 88.73%
 Total K-Fold Execution Time: 59.39s
+
+Testing With Dropout
+
+Epoch [1/5], Loss: 0.1822, Accuracy: 74.75%, Test Loss: 0.1358, Test Accuracy: 84.69%
+Epoch [2/5], Loss: 0.1127, Accuracy: 88.05%, Test Loss: 0.1090, Test Accuracy: 87.82%
+Epoch [3/5], Loss: 0.0862, Accuracy: 91.77%, Test Loss: 0.0978, Test Accuracy: 88.92%
+Epoch [4/5], Loss: 0.0703, Accuracy: 94.01%, Test Loss: 0.0917, Test Accuracy: 89.15%
+Epoch [5/5], Loss: 0.0565, Accuracy: 95.95%, Test Loss: 0.0878, Test Accuracy: 89.71%
+Total Training Time: 15.44s

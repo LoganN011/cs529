@@ -210,6 +210,28 @@ def train_kfold_model(train_dataset, test_data, k=5):
     print(f"Total K-Fold Execution Time: {total_end_time - total_start_time:.2f}s")
 
 
+class DropoutNN(nn.Module):
+    def __init__(self, input_dim, dropout_prob=0.5):
+        super(DropoutNN, self).__init__()
+        self.fc1 = nn.Linear(input_dim, 512)
+        self.bn1 = nn.BatchNorm1d(512)
+        self.dropout1 = nn.Dropout(p=dropout_prob)
+
+        self.fc2 = nn.Linear(512, 64)
+        self.bn2 = nn.BatchNorm1d(64)
+        self.dropout2 = nn.Dropout(p=dropout_prob)
+
+        self.out = nn.Linear(64, 1)
+
+    def forward(self, x):
+        x = torch.nn.functional.relu(self.bn1(self.fc1(x)))
+        x = self.dropout1(x)
+        x = torch.nn.functional.relu(self.bn2(self.fc2(x)))
+        x = self.dropout2(x)
+        x = torch.sigmoid(self.out(x))
+        return x
+
+
 if __name__ == "__main__":
     print(device)
     train_data, test_data = getData()
@@ -223,5 +245,12 @@ if __name__ == "__main__":
 
     print('\nTesting for K-Fold Model\n')
     train_kfold_model(train_data, test_data, k=5)
+
+    print('\nTesting With Dropout\n')
+    model = DropoutNN(input_dim=train_data.tensors[0].shape[1], dropout_prob=0.2).to(device)
+    train_validate_model(model, train_data, test_data)
+
+    print('\nTesting With Dropout and Bagging\n')
+
 
 
