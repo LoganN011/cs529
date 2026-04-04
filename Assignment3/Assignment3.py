@@ -57,7 +57,7 @@ def getData():
 class BasicNN(nn.Module):
     def __init__(self, input_dim):
         super(BasicNN, self).__init__()
-        fc1_num =256
+        fc1_num =512
         fc2_num =64
         self.fc1 = nn.Linear(input_dim, fc1_num)
         self.bn1 = nn.BatchNorm1d(fc1_num)
@@ -213,15 +213,17 @@ def train_kfold_model(train_dataset, test_data, k=5):
 class DropoutNN(nn.Module):
     def __init__(self, input_dim, dropout_prob=0.5):
         super(DropoutNN, self).__init__()
-        self.fc1 = nn.Linear(input_dim, 512)
-        self.bn1 = nn.BatchNorm1d(512)
+        fc1_num = 512
+        fc2_num = 64
+        self.fc1 = nn.Linear(input_dim, fc1_num)
+        self.bn1 = nn.BatchNorm1d(fc1_num)
         self.dropout1 = nn.Dropout(p=dropout_prob)
 
-        self.fc2 = nn.Linear(512, 64)
-        self.bn2 = nn.BatchNorm1d(64)
+        self.fc2 = nn.Linear(fc1_num, fc2_num)
+        self.bn2 = nn.BatchNorm1d(fc2_num)
         self.dropout2 = nn.Dropout(p=dropout_prob)
 
-        self.out = nn.Linear(64, 1)
+        self.out = nn.Linear(fc2_num, 1)
 
     def forward(self, x):
         x = torch.nn.functional.relu(self.bn1(self.fc1(x)))
@@ -232,23 +234,25 @@ class DropoutNN(nn.Module):
         return x
 
 
+
+
 if __name__ == "__main__":
     print(device)
     train_data, test_data = getData()
 
-    print('Testing for BasicNN\n')
-    model = BasicNN(train_data.tensors[0].shape[1]).to(device)
-    train_validate_model(model, train_data, test_data)
-
-    print('\nTesting for Logistic Regression\n')
-    test_logistic_regression(train_data, test_data)
-
+    # print('Testing for BasicNN\n')
+    # model = BasicNN(train_data.tensors[0].shape[1]).to(device)
+    # train_validate_model(model, train_data, test_data)
+    #
+    # print('\nTesting for Logistic Regression\n')
+    # test_logistic_regression(train_data, test_data)
+    #
     print('\nTesting for K-Fold Model\n')
     train_kfold_model(train_data, test_data, k=5)
 
-    print('\nTesting With Dropout\n')
-    model = DropoutNN(input_dim=train_data.tensors[0].shape[1], dropout_prob=0.2).to(device)
-    train_validate_model(model, train_data, test_data)
+    # print('\nTesting With Dropout\n')
+    # model = DropoutNN(input_dim=train_data.tensors[0].shape[1], dropout_prob=0.2).to(device)
+    # train_validate_model(model, train_data, test_data)
 
     print('\nTesting With Dropout and Bagging\n')
 
