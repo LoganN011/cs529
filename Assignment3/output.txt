@@ -1,55 +1,55 @@
 Testing for BasicNN
 
-Epoch [1/5], Loss: 0.1648, Accuracy: 78.90%, Test Loss: 0.1243, Test Accuracy: 85.86%
-Epoch [2/5], Loss: 0.0936, Accuracy: 91.45%, Test Loss: 0.1032, Test Accuracy: 88.31%
-Epoch [3/5], Loss: 0.0677, Accuracy: 95.15%, Test Loss: 0.0949, Test Accuracy: 89.05%
-Epoch [4/5], Loss: 0.0509, Accuracy: 97.38%, Test Loss: 0.0916, Test Accuracy: 89.05%
-Epoch [5/5], Loss: 0.0370, Accuracy: 98.90%, Test Loss: 0.0893, Test Accuracy: 89.24%
-Total Training Time: 14.49s
+Epoch [1/5], Loss: 0.1856, Accuracy: 75.44%, Test Loss: 0.1429, Test Accuracy: 84.58%
+Epoch [2/5], Loss: 0.1131, Accuracy: 89.68%, Test Loss: 0.1152, Test Accuracy: 87.49%
+Epoch [3/5], Loss: 0.0853, Accuracy: 93.29%, Test Loss: 0.1028, Test Accuracy: 88.91%
+Epoch [4/5], Loss: 0.0677, Accuracy: 95.45%, Test Loss: 0.0962, Test Accuracy: 89.19%
+Epoch [5/5], Loss: 0.0541, Accuracy: 97.05%, Test Loss: 0.0913, Test Accuracy: 89.41%
+Total Training Time: 12.98s
 
 Testing for Logistic Regression
 
 Training Accuracy: 92.79%
 Test Accuracy: 89.46%
-Logistic Regression Training Time: 1.83s
+Logistic Regression Training Time: 1.78s
 
 Testing for K-Fold Model
 
 --- Fold 1 ---
-Epoch [1/5], Loss: 0.1851, Accuracy: 72.53%, Test Loss: 0.1410, Test Accuracy: 83.81%
-Epoch [2/5], Loss: 0.1097, Accuracy: 90.16%, Test Loss: 0.1164, Test Accuracy: 87.16%
-Epoch [3/5], Loss: 0.0819, Accuracy: 94.59%, Test Loss: 0.1053, Test Accuracy: 88.77%
-Epoch [4/5], Loss: 0.0639, Accuracy: 96.94%, Test Loss: 0.1008, Test Accuracy: 88.79%
-Epoch [5/5], Loss: 0.0498, Accuracy: 98.40%, Test Loss: 0.0980, Test Accuracy: 88.89%
-Total Training Time: 11.81s
+Epoch [1/5], Loss: 0.1986, Accuracy: 69.77%, Test Loss: 0.1585, Test Accuracy: 80.13%
+Epoch [2/5], Loss: 0.1241, Accuracy: 87.30%, Test Loss: 0.1258, Test Accuracy: 85.89%
+Epoch [3/5], Loss: 0.0926, Accuracy: 92.36%, Test Loss: 0.1114, Test Accuracy: 87.79%
+Epoch [4/5], Loss: 0.0738, Accuracy: 94.89%, Test Loss: 0.1042, Test Accuracy: 88.31%
+Epoch [5/5], Loss: 0.0594, Accuracy: 96.88%, Test Loss: 0.0979, Test Accuracy: 88.96%
+Total Training Time: 10.61s
 --- Fold 2 ---
-Epoch [1/5], Loss: 0.1832, Accuracy: 73.24%, Test Loss: 0.1356, Test Accuracy: 84.51%
-Epoch [2/5], Loss: 0.1040, Accuracy: 90.71%, Test Loss: 0.1089, Test Accuracy: 88.10%
-Epoch [3/5], Loss: 0.0760, Accuracy: 94.62%, Test Loss: 0.0989, Test Accuracy: 88.86%
-Epoch [4/5], Loss: 0.0575, Accuracy: 97.14%, Test Loss: 0.0935, Test Accuracy: 89.24%
-Epoch [5/5], Loss: 0.0448, Accuracy: 98.44%, Test Loss: 0.0912, Test Accuracy: 89.21%
-Total Training Time: 11.97s
+Epoch [1/5], Loss: 0.1909, Accuracy: 73.14%, Test Loss: 0.1469, Test Accuracy: 83.76%
+Epoch [2/5], Loss: 0.1174, Accuracy: 89.27%, Test Loss: 0.1174, Test Accuracy: 87.44%
+Epoch [3/5], Loss: 0.0882, Accuracy: 93.15%, Test Loss: 0.1047, Test Accuracy: 88.67%
+Epoch [4/5], Loss: 0.0697, Accuracy: 95.55%, Test Loss: 0.0971, Test Accuracy: 88.99%
+Epoch [5/5], Loss: 0.0554, Accuracy: 97.29%, Test Loss: 0.0929, Test Accuracy: 89.29%
+Total Training Time: 10.46s
 --- Fold 3 ---
-Epoch [1/5], Loss: 0.1852, Accuracy: 72.13%, Test Loss: 0.1404, Test Accuracy: 83.00%
-Epoch [2/5], Loss: 0.1105, Accuracy: 89.04%, Test Loss: 0.1146, Test Accuracy: 87.44%
-Epoch [3/5], Loss: 0.0827, Accuracy: 93.76%, Test Loss: 0.1026, Test Accuracy: 88.84%
-Epoch [4/5], Loss: 0.0648, Accuracy: 96.51%, Test Loss: 0.0969, Test Accuracy: 89.21%
-Epoch [5/5], Loss: 0.0508, Accuracy: 98.30%, Test Loss: 0.0958, Test Accuracy: 89.23%
-Total Training Time: 11.74s
+Epoch [1/5], Loss: 0.1915, Accuracy: 73.21%, Test Loss: 0.1476, Test Accuracy: 84.16%
+Epoch [2/5], Loss: 0.1172, Accuracy: 88.73%, Test Loss: 0.1171, Test Accuracy: 87.29%
+Epoch [3/5], Loss: 0.0873, Accuracy: 93.07%, Test Loss: 0.1058, Test Accuracy: 88.04%
+Epoch [4/5], Loss: 0.0690, Accuracy: 95.40%, Test Loss: 0.0972, Test Accuracy: 88.79%
+Epoch [5/5], Loss: 0.0549, Accuracy: 97.33%, Test Loss: 0.0932, Test Accuracy: 89.01%
+Total Training Time: 10.13s
 --- Fold 4 ---
-Epoch [1/5], Loss: 0.1764, Accuracy: 77.43%, Test Loss: 0.1324, Test Accuracy: 86.21%
-Epoch [2/5], Loss: 0.1029, Accuracy: 91.17%, Test Loss: 0.1084, Test Accuracy: 88.57%
-Epoch [3/5], Loss: 0.0757, Accuracy: 94.84%, Test Loss: 0.0990, Test Accuracy: 89.67%
-Epoch [4/5], Loss: 0.0578, Accuracy: 97.09%, Test Loss: 0.0928, Test Accuracy: 89.97%
-Epoch [5/5], Loss: 0.0438, Accuracy: 98.65%, Test Loss: 0.0905, Test Accuracy: 90.03%
-Total Training Time: 11.55s
+Epoch [1/5], Loss: 0.1906, Accuracy: 74.01%, Test Loss: 0.1477, Test Accuracy: 84.29%
+Epoch [2/5], Loss: 0.1184, Accuracy: 89.41%, Test Loss: 0.1187, Test Accuracy: 87.80%
+Epoch [3/5], Loss: 0.0887, Accuracy: 93.24%, Test Loss: 0.1049, Test Accuracy: 89.01%
+Epoch [4/5], Loss: 0.0711, Accuracy: 95.30%, Test Loss: 0.0976, Test Accuracy: 89.26%
+Epoch [5/5], Loss: 0.0565, Accuracy: 97.15%, Test Loss: 0.0919, Test Accuracy: 89.64%
+Total Training Time: 10.26s
 --- Fold 5 ---
-Epoch [1/5], Loss: 0.1808, Accuracy: 76.54%, Test Loss: 0.1346, Test Accuracy: 86.03%
-Epoch [2/5], Loss: 0.1067, Accuracy: 90.91%, Test Loss: 0.1097, Test Accuracy: 88.23%
-Epoch [3/5], Loss: 0.0794, Accuracy: 94.65%, Test Loss: 0.0978, Test Accuracy: 89.57%
-Epoch [4/5], Loss: 0.0609, Accuracy: 96.98%, Test Loss: 0.0917, Test Accuracy: 89.94%
-Epoch [5/5], Loss: 0.0468, Accuracy: 98.51%, Test Loss: 0.0882, Test Accuracy: 90.34%
-Total Training Time: 11.33s
-Average 5-Fold Validation Accuracy: 89.55%
-Final Test Accuracy after K-Fold: 89.12%
-Total K-Fold Execution Time: 65.97s
+Epoch [1/5], Loss: 0.1933, Accuracy: 73.40%, Test Loss: 0.1508, Test Accuracy: 83.67%
+Epoch [2/5], Loss: 0.1226, Accuracy: 88.59%, Test Loss: 0.1186, Test Accuracy: 87.54%
+Epoch [3/5], Loss: 0.0929, Accuracy: 92.62%, Test Loss: 0.1049, Test Accuracy: 88.59%
+Epoch [4/5], Loss: 0.0742, Accuracy: 95.12%, Test Loss: 0.0970, Test Accuracy: 89.27%
+Epoch [5/5], Loss: 0.0602, Accuracy: 96.87%, Test Loss: 0.0931, Test Accuracy: 89.81%
+Total Training Time: 10.53s
+Average 5-Fold Validation Accuracy: 89.34%
+Final Test Accuracy after K-Fold: 88.73%
+Total K-Fold Execution Time: 59.39s

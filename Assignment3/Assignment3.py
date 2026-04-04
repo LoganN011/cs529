@@ -57,7 +57,7 @@ def getData():
 class BasicNN(nn.Module):
     def __init__(self, input_dim):
         super(BasicNN, self).__init__()
-        fc1_num =512
+        fc1_num =256
         fc2_num =64
         self.fc1 = nn.Linear(input_dim, fc1_num)
         self.bn1 = nn.BatchNorm1d(fc1_num)
