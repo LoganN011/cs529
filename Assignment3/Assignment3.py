@@ -11,6 +11,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from torch import nn
 import torch.nn.functional
 from torch.utils.data import TensorDataset, DataLoader
+from sklearn.model_selection import KFold
 
 torch.manual_seed(1)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -56,18 +57,17 @@ def getData():
 class BasicNN(nn.Module):
     def __init__(self, input_dim):
         super(BasicNN, self).__init__()
-        self.fc1 = nn.Linear(input_dim, 512)
-        self.bn1 = nn.BatchNorm1d(512)
-        self.fc2 = nn.Linear(512, 64)
-        self.bn2 = nn.BatchNorm1d(64)
-        # self.fc3 = nn.Linear(128, 64)
-        # self.bn3 = nn.BatchNorm1d(64)
-        self.out = nn.Linear(64, 1)
+        fc1_num =512
+        fc2_num =64
+        self.fc1 = nn.Linear(input_dim, fc1_num)
+        self.bn1 = nn.BatchNorm1d(fc1_num)
+        self.fc2 = nn.Linear(fc1_num, fc2_num)
+        self.bn2 = nn.BatchNorm1d(fc2_num)
+        self.out = nn.Linear(fc2_num, 1)
 
     def forward(self, x):
         x = torch.nn.functional.relu(self.bn1(self.fc1(x)))
         x = torch.nn.functional.relu(self.bn2(self.fc2(x)))
-        # x = torch.nn.functional.relu(self.bn3(self.fc3(x)))
         x = torch.sigmoid(self.out(x))
         return x
 
@@ -161,19 +161,67 @@ def train_validate_model(model, train_data, test_data):
         val_accuracies.append(val_accuracy)
 
         print(
-            f'Epoch [{epoch + 1}/{num_epochs}], Loss: {epoch_loss:.4f}, Accuracy: {epoch_accuracy:.2f}%, Val Loss: {test_loss:.4f}, Val Accuracy: {val_accuracy:.2f}%')
+            f'Epoch [{epoch + 1}/{num_epochs}], Loss: {epoch_loss:.4f}, Accuracy: {epoch_accuracy:.2f}%, Test Loss: {test_loss:.4f}, Test Accuracy: {val_accuracy:.2f}%')
     print(f'Total Training Time: {total_time:.2f}s')
     return train_losses, val_losses, train_accuracies, val_accuracies
+
+
+def train_kfold_model(train_dataset, test_data, k=5):
+    input_dim = train_dataset.tensors[0].shape[1]
+
+    X_train_full = train_dataset.tensors[0]
+    y_train_full = train_dataset.tensors[1]
+
+    kf = KFold(n_splits=k, shuffle=True, random_state=1)
+
+    fold_results = []
+    total_start_time = time.time()
+
+    for fold, (train_idx, val_idx) in enumerate(kf.split(X_train_full)):
+        print(f"--- Fold {fold + 1} ---")
+
+        train_sub = TensorDataset(X_train_full[train_idx], y_train_full[train_idx])
+        val_sub = TensorDataset(X_train_full[val_idx], y_train_full[val_idx])
+
+        model = BasicNN(input_dim).to(device)
+
+        train_loss, val_loss, train_acc, val_acc = train_validate_model(model, train_sub, val_sub)
+
+        fold_results.append(max(val_acc))
+
+    total_end_time = time.time()
+
+    model.eval()
+    test_loader = DataLoader(test_data, batch_size=64, shuffle=False)
+    correct, total = 0, 0
+    with torch.no_grad():
+        for images, labels in test_loader:
+            images, labels = images.to(device), labels.to(device)
+            outputs = model(images)
+            predicted = (outputs > 0.5).float()
+            correct += (predicted.view(-1) == labels.view(-1)).sum().item()
+            total += labels.size(0)
+
+    final_test_acc = 100 * correct / total
+    avg_fold_acc = sum(fold_results) / len(fold_results)
+
+    print(f"Average {k}-Fold Validation Accuracy: {avg_fold_acc:.2f}%")
+    print(f"Final Test Accuracy after K-Fold: {final_test_acc:.2f}%")
+    print(f"Total K-Fold Execution Time: {total_end_time - total_start_time:.2f}s")
 
 
 if __name__ == "__main__":
     print(device)
     train_data, test_data = getData()
-    model = BasicNN(train_data.tensors[0].shape[1]).to(device)
+
     print('Testing for BasicNN\n')
+    model = BasicNN(train_data.tensors[0].shape[1]).to(device)
     train_validate_model(model, train_data, test_data)
 
     print('\nTesting for Logistic Regression\n')
     test_logistic_regression(train_data, test_data)
+
+    print('\nTesting for K-Fold Model\n')
+    train_kfold_model(train_data, test_data, k=5)
 
 
