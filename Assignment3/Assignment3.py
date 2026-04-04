@@ -240,19 +240,19 @@ if __name__ == "__main__":
     print(device)
     train_data, test_data = getData()
 
-    # print('Testing for BasicNN\n')
-    # model = BasicNN(train_data.tensors[0].shape[1]).to(device)
-    # train_validate_model(model, train_data, test_data)
-    #
-    # print('\nTesting for Logistic Regression\n')
-    # test_logistic_regression(train_data, test_data)
-    #
+    print('Testing for BasicNN\n')
+    model = BasicNN(train_data.tensors[0].shape[1]).to(device)
+    train_validate_model(model, train_data, test_data)
+
+    print('\nTesting for Logistic Regression\n')
+    test_logistic_regression(train_data, test_data)
+
     print('\nTesting for K-Fold Model\n')
     train_kfold_model(train_data, test_data, k=5)
 
-    # print('\nTesting With Dropout\n')
-    # model = DropoutNN(input_dim=train_data.tensors[0].shape[1], dropout_prob=0.2).to(device)
-    # train_validate_model(model, train_data, test_data)
+    print('\nTesting With Dropout\n')
+    model = DropoutNN(input_dim=train_data.tensors[0].shape[1], dropout_prob=0.2).to(device)
+    train_validate_model(model, train_data, test_data)
 
     print('\nTesting With Dropout and Bagging\n')
 
