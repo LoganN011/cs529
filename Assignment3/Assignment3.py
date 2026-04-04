@@ -1,5 +1,6 @@
 import time
 
+import numpy as np
 import pandas as pd
 import re
 
@@ -57,8 +58,8 @@ def getData():
 class BasicNN(nn.Module):
     def __init__(self, input_dim):
         super(BasicNN, self).__init__()
-        fc1_num =512
-        fc2_num =64
+        fc1_num = 512
+        fc2_num = 64
         self.fc1 = nn.Linear(input_dim, fc1_num)
         self.bn1 = nn.BatchNorm1d(fc1_num)
         self.fc2 = nn.Linear(fc1_num, fc2_num)
@@ -73,15 +74,12 @@ class BasicNN(nn.Module):
 
 
 def test_logistic_regression(train_data, test_data):
-
     X_train = train_data.tensors[0].numpy()
     y_train = train_data.tensors[1].numpy().ravel()
     X_test = test_data.tensors[0].numpy()
     y_test = test_data.tensors[1].numpy().ravel()
 
-
-    lr_model = LogisticRegression(solver='liblinear',random_state=1)
-
+    lr_model = LogisticRegression(solver='liblinear', random_state=1)
 
     start_time = time.time()
     lr_model.fit(X_train, y_train)
@@ -93,10 +91,9 @@ def test_logistic_regression(train_data, test_data):
     y_pred = lr_model.predict(X_train)
     train_accuracy = accuracy_score(y_train, y_pred)
 
-    print(f'Training Accuracy: {train_accuracy* 100:.2f}%')
+    print(f'Training Accuracy: {train_accuracy * 100:.2f}%')
     print(f"Test Accuracy: {test_accuracy * 100:.2f}%")
     print(f"Logistic Regression Training Time: {end_time - start_time:.2f}s")
-
 
 
 def train_validate_model(model, train_data, test_data):
@@ -234,6 +231,60 @@ class DropoutNN(nn.Module):
         return x
 
 
+def train_bagging_ensemble(train_dataset, test_data, num_models=5):
+    input_dim = train_dataset.tensors[0].shape[1]
+    models = []
+    X_train_full = train_dataset.tensors[0]
+    y_train_full = train_dataset.tensors[1]
+    n_samples = len(X_train_full)
+
+
+    total_training_time = 0
+
+    for i in range(num_models):
+        print(f"--- Model {i + 1} ---")
+        start_time = time.time()
+
+        indices = np.random.choice(n_samples, n_samples, replace=True)
+        bootstrap_X = X_train_full[indices]
+        bootstrap_y = y_train_full[indices]
+        bootstrap_dataset = TensorDataset(bootstrap_X, bootstrap_y)
+
+        model = DropoutNN(input_dim, dropout_prob=0.2).to(device)
+
+        train_validate_model(model, bootstrap_dataset, test_data)
+
+        models.append(model)
+        total_training_time += (time.time() - start_time)
+
+    def evaluate_ensemble(dataset):
+        loader = DataLoader(dataset, batch_size=64, shuffle=False)
+        correct = 0
+        total = 0
+        for model in models:
+            model.eval()
+
+        with torch.no_grad():
+            for data, labels in loader:
+                data, labels = data.to(device), labels.to(device)
+
+                ensemble_outputs = torch.zeros_like(labels)
+                for model in models:
+                    ensemble_outputs += model(data)
+
+                avg_output = ensemble_outputs / num_models
+                predicted = (avg_output > 0.5).float()
+                correct += (predicted.view(-1) == labels.view(-1)).sum().item()
+                total += labels.size(0)
+        return 100 * correct / total
+
+    print("\n--- Final Ensemble Results ---")
+    train_acc = evaluate_ensemble(train_dataset)
+    test_acc = evaluate_ensemble(test_data)
+
+    print(f"Total Ensemble Training Time: {total_training_time:.2f}s")
+    print(f"Ensemble Training Accuracy: {train_acc:.2f}%")
+    print(f"Ensemble Test Accuracy: {test_acc:.2f}%")
 
 
 if __name__ == "__main__":
@@ -255,6 +306,4 @@ if __name__ == "__main__":
     train_validate_model(model, train_data, test_data)
 
     print('\nTesting With Dropout and Bagging\n')
-
-
-
+    train_bagging_ensemble(train_data, test_data, num_models=5)
