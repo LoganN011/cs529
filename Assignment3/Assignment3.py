@@ -1,3 +1,4 @@
+import tarfile
 import time
 
 import numpy as np
@@ -28,7 +29,7 @@ def preprocessor(text):
 
 
 def getData():
-    df = pd.read_csv('movie_data.csv')
+    df = pd.read_csv('movie_data.csv.gz',compression='gzip')
 
     df['review'] = df['review'].apply(preprocessor)
 
