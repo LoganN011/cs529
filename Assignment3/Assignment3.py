@@ -172,7 +172,8 @@ def train_kfold_model(train_dataset, test_data, k=5):
 
     kf = KFold(n_splits=k, shuffle=True, random_state=1)
 
-    fold_results = []
+    fold_val_results = []
+    fold_train_results = [] # Track training results
     total_start_time = time.time()
 
     for fold, (train_idx, val_idx) in enumerate(kf.split(X_train_full)):
@@ -185,7 +186,8 @@ def train_kfold_model(train_dataset, test_data, k=5):
 
         train_loss, val_loss, train_acc, val_acc = train_validate_model(model, train_sub, val_sub)
 
-        fold_results.append(max(val_acc))
+        fold_train_results.append(train_acc[-1])
+        fold_val_results.append(val_acc[-1])
 
     total_end_time = time.time()
 
@@ -201,9 +203,11 @@ def train_kfold_model(train_dataset, test_data, k=5):
             total += labels.size(0)
 
     final_test_acc = 100 * correct / total
-    avg_fold_acc = sum(fold_results) / len(fold_results)
+    avg_train_acc = sum(fold_train_results) / len(fold_train_results)
+    avg_val_acc = sum(fold_val_results) / len(fold_val_results)
 
-    print(f"Average {k}-Fold Validation Accuracy: {avg_fold_acc:.2f}%")
+    print(f"\nAverage {k}-Fold Training Accuracy: {avg_train_acc:.2f}%")
+    print(f"Average {k}-Fold Validation Accuracy: {avg_val_acc:.2f}%")
     print(f"Final Test Accuracy after K-Fold: {final_test_acc:.2f}%")
     print(f"Total K-Fold Execution Time: {total_end_time - total_start_time:.2f}s")
 
@@ -292,19 +296,19 @@ if __name__ == "__main__":
     print(device)
     train_data, test_data = getData()
 
-    print('Testing for BasicNN\n')
-    model = BasicNN(train_data.tensors[0].shape[1]).to(device)
-    train_validate_model(model, train_data, test_data)
-
-    print('\nTesting for Logistic Regression\n')
-    test_logistic_regression(train_data, test_data)
+    # print('Testing for BasicNN\n')
+    # model = BasicNN(train_data.tensors[0].shape[1]).to(device)
+    # train_validate_model(model, train_data, test_data)
+    #
+    # print('\nTesting for Logistic Regression\n')
+    # test_logistic_regression(train_data, test_data)
 
     print('\nTesting for K-Fold Model\n')
     train_kfold_model(train_data, test_data, k=5)
 
-    print('\nTesting With Dropout\n')
-    model = DropoutNN(input_dim=train_data.tensors[0].shape[1], dropout_prob=0.2).to(device)
-    train_validate_model(model, train_data, test_data)
-
-    print('\nTesting With Dropout and Bagging\n')
-    train_bagging_ensemble(train_data, test_data, num_models=5)
+    # print('\nTesting With Dropout\n')
+    # model = DropoutNN(input_dim=train_data.tensors[0].shape[1], dropout_prob=0.2).to(device)
+    # train_validate_model(model, train_data, test_data)
+    #
+    # print('\nTesting With Dropout and Bagging\n')
+    # train_bagging_ensemble(train_data, test_data, num_models=5)

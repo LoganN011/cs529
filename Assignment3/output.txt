@@ -50,6 +50,8 @@ Epoch [3/5], Loss: 0.0708, Accuracy: 93.57%, Test Loss: 0.0869, Test Accuracy: 8
 Epoch [4/5], Loss: 0.0505, Accuracy: 95.97%, Test Loss: 0.0800, Test Accuracy: 90.59%
 Epoch [5/5], Loss: 0.0366, Accuracy: 97.84%, Test Loss: 0.0763, Test Accuracy: 90.61%
 Total Training Time: 9.78s
+
+Average 5-Fold Training Accuracy: 97.79%
 Average 5-Fold Validation Accuracy: 89.66%
 Final Test Accuracy after K-Fold: 89.33%
 Total K-Fold Execution Time: 57.07s
