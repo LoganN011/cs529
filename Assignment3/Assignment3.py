@@ -59,8 +59,8 @@ def getData():
 class BasicNN(nn.Module):
     def __init__(self, input_dim):
         super(BasicNN, self).__init__()
-        fc1_num = 512
-        fc2_num = 64
+        fc1_num = 256
+        fc2_num = 256
         self.fc1 = nn.Linear(input_dim, fc1_num)
         self.bn1 = nn.BatchNorm1d(fc1_num)
         self.fc2 = nn.Linear(fc1_num, fc2_num)
@@ -211,8 +211,8 @@ def train_kfold_model(train_dataset, test_data, k=5):
 class DropoutNN(nn.Module):
     def __init__(self, input_dim, dropout_prob=0.5):
         super(DropoutNN, self).__init__()
-        fc1_num = 512
-        fc2_num = 64
+        fc1_num = 256
+        fc2_num = 256
         self.fc1 = nn.Linear(input_dim, fc1_num)
         self.bn1 = nn.BatchNorm1d(fc1_num)
         self.dropout1 = nn.Dropout(p=dropout_prob)
