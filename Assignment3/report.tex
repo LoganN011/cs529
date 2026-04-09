@@ -3,14 +3,91 @@
 \usepackage{graphicx} 
 \usepackage{booktabs}
 
-\title{Assignment 2: Scalability of Support Vector Machines}
+\title{Assignment 3: Sentiment Analysis using Feedforward Neural
+Networks}
 \author{Logan Nunno }
-\date{February 2026}
+\date{April 2026}
 
 \begin{document}
 
 \maketitle
 
+\section{Task 2}
+Before making the Feedforward Neural Network (FNN), I had to prepare the dataset by cleaning the IMDb reviews using the textbook-provided functions to remove any unwanted HTML tags and other unnecessary aspects of the dataset. I then converted the different reviews into the \texttt{TfidfVectorizer} to transform the text into tf-idf vectors. The TF-IDF vectorizer was set to use both unigrams and bigrams with a maximum of 10,000 features, so the input dimension to the network is fairly large. Because of this, using a neural network can help capture more complex relationships compared to something like logistic regression. The data was split into 70\% training set and a 30\% test set and then converted to a tensor dataset.
 
+For the neural network, I made a class that inherits from PyTorch's \texttt{nn.Module}. The network takes in the 10,000-dimensional tf-idf vector as input. I used 2 hidden layers, each with 256 neurons. Each layer performs a linear mapping followed by 1D Batch Normalization and a ReLU activation function. The normalization helps stabilize the learning process. Finally, the output layer reduces the 256 features to a single output neuron. Since this is a binary classification problem (predicting a sentiment of 0 or 1), I applied a Sigmoid activation function to map the output to a probability, which is then used with binary cross-entropy loss.
+
+\section{Task 3}
+To train the baseline model, I used Binary Cross Entropy (\texttt{BCELoss}) as the criterion and the Adam optimizer. I chose Adam over standard Stochastic Gradient Descent (SGD) because Adam adapts the learning rate for each parameter, which generally converges faster in deep learning scenarios. After testing multiple hyperparameter combinations, I selected a learning rate of $0.00001$ and applied L2 regularization through a weight decay parameter of $0.01$ to help reduce overfitting. The model was trained over 5 epochs with a batch size of 64.
+
+\begin{table}[h]
+\centering
+\caption{Comparison of Baseline FNN and Logistic Regression}
+\label{tab:baseline-comparison}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Model} & \textbf{Training Accuracy} & \textbf{Test Accuracy} & \textbf{Time Cost (s)} \\ \midrule
+Logistic Regression & 92.79\%  & 89.46\%  & 1.80  \\
+Basic FNN & 97.50\%  & 89.64\%  & 13.05  \\ \bottomrule
+\end{tabular}
+\end{table}
+
+The performance of the basic FNN compared to the Logistic Regression model is shown in Table \ref{tab:baseline-comparison}. The Logistic Regression model is computationally inexpensive, finishing its training in just 1.80 seconds. In contrast, the FNN took 13.05 seconds. The FNN achieved a higher training accuracy of 97.50\%, indicating that it can learn more complex patterns in the data. However, the test accuracy (89.64\%) is only slightly higher than Logistic Regression (89.46\%), showing that the improvement is marginal. This suggests that while the FNN is more flexible, Logistic Regression already performs very well on tf-idf features, and the FNN still shows some degree of overfitting.
+
+To further improve performance, I experimented with increasing the TF-IDF vectorizer from 10,000 features to 20,000 features. This expanded feature space allowed the model to capture more vocabulary and contextual information from the dataset. With 20,000 features, the model was able to surpass the target benchmark and achieve slightly above 90\% test accuracy in some runs. However, this improvement was not entirely consistent. While the larger feature count helped in certain cases, other training runs showed minimal gains or slightly worse generalization due to the increased dimensionality introducing more noise and sparsity into the input space.
+
+Additionally, increasing to 20,000 features significantly increased the computational cost of training. At this scale, GPU memory limitations prevented efficient execution, so the model had to be trained entirely on the CPU. This caused training time to increase substantially, making experimentation and tuning much slower. As a result, while the larger feature set could achieve the desired benchmark, it was computationally expensive and less practical for repeated experimentation. Overall, the results suggest that while increasing the number of features can improve predictive performance, there is a tradeoff between accuracy, consistency, and computational efficiency.
+
+\section{Task 4}
+
+For this part, I implemented 5-fold cross validation manually using PyTorch. The training data was split into 5 parts, and for each fold the model was trained on 4 parts and validated on the remaining one. This process was repeated 5 times, and the validation accuracies were averaged. I utilized scikit-learn's \texttt{KFold} to generate the train and validation indices, and then dynamically created new \texttt{TensorDataset} subsets for each fold.
+
+\begin{table}[h]
+\centering
+\caption{K-Fold Cross Validation Performance ($k=5$)}
+\label{tab:kfold-performance}
+\begin{tabular}{@{}lc@{}}
+\toprule
+\textbf{Metric} & \textbf{Value} \\ \midrule
+Average 5-Fold Training Accuracy & 97.28\% \\
+Average 5-Fold Validation Accuracy & 89.85\% \\
+Final Test Accuracy & 89.59\% \\
+Total K-Fold Execution Time & 56.54s \\ \bottomrule
+\end{tabular}
+\end{table}
+
+The results of the cross-validation are shown in Table \ref{tab:kfold-performance}. Implementing k-fold cross-validation provides a more robust estimate of how the model generalizes to unseen data, since it evaluates performance across multiple splits. The total execution time scales roughly linearly with the number of folds, as the model is trained from scratch multiple times. Compared to the baseline model, the accuracy is very similar. The baseline test accuracy was 89.64\%, while the k-fold result is 89.59\%. This indicates that k-fold cross-validation does not improve performance directly, but instead provides a more reliable estimate of model generalization. The reported test accuracy corresponds to the model from the final fold.
+
+\section{Task 5}
+For this task, I explored dropout regularization and ensemble methods to improve performance and reduce overfitting. For the dropout model, I created a new class, \texttt{DropoutNN}, which incorporates \texttt{nn.Dropout} layers immediately after the ReLU activations in the hidden layers. I set the dropout probability to $p=0.2$. Dropout works by randomly disabling a subset of neurons during training, which encourages the network to learn more robust representations.
+
+\begin{table}[h]
+\centering
+\caption{Performance of Regularization and Ensemble Methods}
+\label{tab:ensemble-performance}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Model Strategy} & \textbf{Training Acc.} & \textbf{Test Acc.} & \textbf{Total Time (s)} \\ \midrule
+Baseline FNN & 97.50\% & 89.64\%  & 13.05  \\
+Single Dropout ($p=0.2$) & 94.63\%  & 89.75\%  & 13.01  \\
+Ensemble (5 Bagged Models) & 97.12\%  & 89.76\%  & 77.68  \\ \bottomrule
+\end{tabular}
+\end{table}
+
+Table \ref{tab:ensemble-performance} shows the performance of different approaches. Adding dropout reduced the training accuracy from 97.50\% to 94.63\%, while the test accuracy slightly increased from 89.64\% to 89.75\%. This suggests that dropout helps reduce overfitting and provides a small improvement in generalization.
+
+Finally, I created an ensemble using bootstrap aggregating (bagging). I trained 5 separate \texttt{DropoutNN} models on bootstrapped samples of the training data. The final prediction was obtained by averaging their outputs. The ensemble achieved a test accuracy of 89.76\%, which is slightly higher than the baseline but still a small improvement. Bagging helps reduce variance by averaging multiple models, but the improvement is limited here. The main drawback is the increased computational cost, as training 5 models increased the total time to 77.68 seconds.
+
+Overall, dropout and ensemble methods provided slight improvements in performance, but at the cost of increased computational complexity.
+
+\section{Conclusion}
+
+Overall, this project demonstrated that Feedforward Neural Networks can be successfully applied to sentiment analysis using TF-IDF vectorized IMDb review data, but the performance gains over simpler models are relatively modest. The baseline FNN slightly outperformed logistic regression in test accuracy, showing that the neural network was able to learn more complex relationships within the feature space. However, this improvement came at a significantly higher computational cost and with increased signs of overfitting, as seen by the large gap between training and test accuracy.
+
+Hyperparameter tuning and experimentation with the model structure helped improve performance, and increasing the TF-IDF feature count to 20,000 allowed the network to exceed the 90\% test accuracy target in some cases. Despite this improvement, the larger feature space did not consistently provide better generalization and greatly increased training time. Because of the increased dimensionality, training at that scale had to be performed on the CPU, making experimentation much slower and less practical.
+
+The use of 5-fold cross validation provided a more reliable estimate of model generalization but did not significantly improve predictive performance. Instead, it confirmed that the model’s performance remained relatively stable across multiple data splits while substantially increasing execution time. Similarly, dropout regularization and bagging ensembles offered only minor improvements in test accuracy. Dropout slightly reduced overfitting, while ensemble learning achieved the highest test accuracy overall, but both methods required additional complexity and computational resources for only marginal gains.
+
+In conclusion, the experiments suggest that while deeper learning methods can improve sentiment classification performance, traditional machine learning methods such as logistic regression remain highly competitive for TF-IDF based text classification tasks. The neural network approaches provided some benefits, but the improvements were small relative to their increased training time and complexity. This highlights the importance of balancing model performance with computational efficiency when selecting an approach for practical machine learning problems.
 
 \end{document}
