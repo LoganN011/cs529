@@ -9,6 +9,7 @@ from sklearn.preprocessing import MinMaxScaler
 from torch import nn
 from torch.utils.data import TensorDataset, DataLoader
 
+torch.manual_seed(1)
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
@@ -57,7 +58,7 @@ def getData(tickers, M=50, N=1, train_split=0.8):
 
 
 class BasicRNN(nn.Module):
-    def __init__(self, input_size=1, hidden_size=32, num_layers=1, output_size=1):
+    def __init__(self, input_size=1, hidden_size=64, num_layers=2, output_size=1):
         super(BasicRNN, self).__init__()
         self.hidden_size = hidden_size
 
@@ -67,6 +68,21 @@ class BasicRNN(nn.Module):
 
     def forward(self, x):
         out, _ = self.rnn(x)
+        out = self.fc(out[:, -1, :])
+        return out
+
+
+
+class GRU(nn.Module):
+    def __init__(self, input_size=1, hidden_size=64, num_layers=2, output_size=1):
+        super(GRU, self).__init__()
+        self.hidden_size = hidden_size
+
+        self.gru = nn.GRU(input_size, hidden_size, num_layers, batch_first=True)
+        self.fc = nn.Linear(hidden_size, output_size)
+
+    def forward(self, x):
+        out, _ = self.gru(x)
         out = self.fc(out[:, -1, :])
         return out
 
@@ -134,8 +150,21 @@ if __name__ == '__main__':
         train_loader = DataLoader(train_ds, batch_size=32, shuffle=True)
         test_loader = DataLoader(test_ds, batch_size=32, shuffle=False)
 
-        model = BasicRNN(input_size=1, hidden_size=64, num_layers=1)
-        test_model(model, train_loader, test_loader, data['scaler'])
+        modelRNN = BasicRNN(input_size=1, hidden_size=64, num_layers=1)
+        test_model(modelRNN, train_loader, test_loader, data['scaler'])
+
+    print('\nGRU\n')
+    for ticker in tickers:
+        print(ticker)
+        data = all_data[ticker]
+        train_ds = TensorDataset(data['train'][0], data['train'][1])
+        test_ds = TensorDataset(data['test'][0], data['test'][1])
+
+        train_loader = DataLoader(train_ds, batch_size=32, shuffle=True)
+        test_loader = DataLoader(test_ds, batch_size=32, shuffle=False)
+
+        modelGRU = GRU(input_size=1, hidden_size=64, num_layers=1, output_size=1)
+        test_model(modelGRU, train_loader, test_loader, data['scaler'])
 
 
 
