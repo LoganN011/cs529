@@ -15,7 +15,7 @@ def getData(tickers, M=50, N=1, train_split=0.8):
     all_data = {}
 
     for ticker in tickers:
-        df = yf.download(ticker, start='2018-02-01', end='2021-01-31', progress=False)
+        df = yf.download(ticker, start='2018-02-01', end='2026-01-31', progress=False)
         if df.empty: continue
 
         data = df['Close'].values.reshape(-1, 1)
