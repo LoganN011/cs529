@@ -2,11 +2,12 @@ import time
 
 import numpy as np
 import torch
+import torch.optim as optim
 import yfinance as yf
 from sklearn.preprocessing import MinMaxScaler
 from torch import nn
-import torch.optim as optim
 from torch.utils.data import TensorDataset, DataLoader
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
@@ -30,6 +31,7 @@ def getData(tickers, M=50, N=1, train_split=0.8):
         test_scaled = scaler.transform(test_raw)
 
         full_scaled = np.vstack((train_scaled, test_scaled))
+
 
         X, y = [], []
         for i in range(len(full_scaled) - M - N + 1):
@@ -68,7 +70,7 @@ class BasicRNN(nn.Module):
         return out
 
 
-def test_model(model, train_loader, test_loader, epochs=50, lr=0.001):
+def test_model(model, train_loader, test_loader,scaler, epochs=50, lr=0.001):
     model.to(device)
     criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=lr)
@@ -102,22 +104,16 @@ def test_model(model, train_loader, test_loader, epochs=50, lr=0.001):
         test_preds = model(test_X)
         test_error = criterion(test_preds, test_y.view(-1, 1)).item()
 
+
+        actual_prices = scaler.inverse_transform(test_y.cpu().numpy().reshape(-1, 1))
+        predicted_prices = scaler.inverse_transform(test_preds.cpu().numpy().reshape(-1, 1))
+
+        mape = np.mean(np.abs((actual_prices - predicted_prices) / (actual_prices + 1e-7)))
+        test_acc = max(0, (1 - mape) * 100)
+
     print(f"Time Cost of Learning: {total_time:.2f} seconds")
     print(f"Final Training Error (MSE): {train_error:.6f}")
     print(f"Final Test Error (MSE): {test_error:.6f}")
-
-
-    with torch.no_grad():
-        # Get actual prices by reversing the scaling
-        # Note: all_data[ticker]['scaler'] needs to be passed in or accessed
-        actual_test_y = test_y.cpu().numpy().reshape(-1, 1)
-        pred_test_y = test_preds.cpu().numpy().reshape(-1, 1)
-
-        # Calculate Mean Absolute Percentage Error
-        # This is a better representation of "how much I got right"
-        mape = np.mean(np.abs((actual_test_y - pred_test_y) / (actual_test_y + 1e-7)))
-        test_acc = max(0, (1 - mape) * 100)
-
     print(f"Estimated Test Accuracy: {test_acc:.2f}%")
 
 
@@ -143,7 +139,7 @@ if __name__ == '__main__':
         test_loader = DataLoader(test_ds, batch_size=32, shuffle=False)
 
         model = BasicRNN(input_size=1, hidden_size=64, num_layers=1)
-        test_model(model, train_loader, test_loader)
+        test_model(model, train_loader, test_loader, data['scaler'])
 
 
 
