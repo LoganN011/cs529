@@ -1,0 +1,26 @@
+Basic RNN
+
+AAPL
+Time Cost of Learning: 2.44 seconds
+Final Training Error (MSE): 0.000787
+Final Test Error (MSE): 0.020986
+Estimated Test Accuracy: 91.33%
+
+GOOG
+Time Cost of Learning: 2.24 seconds
+Final Training Error (MSE): 0.001899
+Final Test Error (MSE): 0.008184
+Estimated Test Accuracy: 93.90%
+
+AMD
+Time Cost of Learning: 2.34 seconds
+Final Training Error (MSE): 0.000798
+Final Test Error (MSE): 0.011473
+Estimated Test Accuracy: 93.84%
+
+NVDA
+Time Cost of Learning: 2.75 seconds
+Final Training Error (MSE): 0.000996
+Final Test Error (MSE): 0.007138
+Estimated Test Accuracy: 95.44%
+
