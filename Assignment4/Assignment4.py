@@ -1,3 +1,4 @@
+import math
 import time
 
 import numpy as np
@@ -70,7 +71,7 @@ class BasicRNN(nn.Module):
         return out
 
 
-def test_model(model, train_loader, test_loader,scaler, epochs=50, lr=0.001):
+def test_model(model, train_loader, test_loader, scaler, epochs=50, lr=0.001):
     model.to(device)
     criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=lr)
@@ -79,45 +80,40 @@ def test_model(model, train_loader, test_loader,scaler, epochs=50, lr=0.001):
 
     model.train()
     for epoch in range(epochs):
-        epoch_loss = 0
         for batch_X, batch_y in train_loader:
             batch_X, batch_y = batch_X.to(device), batch_y.to(device)
-
             optimizer.zero_grad()
             outputs = model(batch_X)
             loss = criterion(outputs, batch_y.view(-1, 1))
             loss.backward()
             optimizer.step()
-            epoch_loss += loss.item()
 
     total_time = time.time() - start_time
 
     model.eval()
     with torch.no_grad():
-        train_X, train_y = train_loader.dataset.tensors
-        train_X, train_y = train_X.to(device), train_y.to(device)
-        train_preds = model(train_X)
-        train_error = criterion(train_preds, train_y.view(-1, 1)).item()
-
         test_X, test_y = test_loader.dataset.tensors
         test_X, test_y = test_X.to(device), test_y.to(device)
         test_preds = model(test_X)
-        test_error = criterion(test_preds, test_y.view(-1, 1)).item()
-
 
         actual_prices = scaler.inverse_transform(test_y.cpu().numpy().reshape(-1, 1))
         predicted_prices = scaler.inverse_transform(test_preds.cpu().numpy().reshape(-1, 1))
 
-        mape = np.mean(np.abs((actual_prices - predicted_prices) / (actual_prices + 1e-7)))
+        mae = np.mean(np.abs(actual_prices - predicted_prices))
+
+        mse = np.mean((actual_prices - predicted_prices) ** 2)
+
+        rmse = math.sqrt(mse)
+
+        mape = np.mean(np.abs((actual_prices - predicted_prices) / actual_prices))
         test_acc = max(0, (1 - mape) * 100)
 
     print(f"Time Cost of Learning: {total_time:.2f} seconds")
-    print(f"Final Training Error (MSE): {train_error:.6f}")
-    print(f"Final Test Error (MSE): {test_error:.6f}")
-    print(f"Estimated Test Accuracy: {test_acc:.2f}%")
-
-
-
+    print(f"Mean Absolute Error (MAE):    {mae:.4f}")
+    print(f"Mean Squared Error (MSE):     {mse:.4f}")
+    print(f"Root Mean Squared Error (RMSE): {rmse:.4f}")
+    print(f"Mean Absolute Percentage Error (MAPE): {mape * 100:.2f}%")
+    print(f"Estimated Test Accuracy:      {test_acc:.2f}%")
     print()
 
 
