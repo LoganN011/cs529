@@ -34,7 +34,6 @@ def getData(tickers, M=50, N=1, train_split=0.8):
 
         full_scaled = np.vstack((train_scaled, test_scaled))
 
-
         X, y = [], []
         for i in range(len(full_scaled) - M - N + 1):
             X.append(full_scaled[i: i + M])
@@ -58,7 +57,7 @@ def getData(tickers, M=50, N=1, train_split=0.8):
 
 
 class BasicRNN(nn.Module):
-    def __init__(self, input_size=1, hidden_size=64, num_layers=2, output_size=1):
+    def __init__(self, input_size=1, hidden_size=64, num_layers=1, output_size=1):
         super(BasicRNN, self).__init__()
         self.hidden_size = hidden_size
 
@@ -72,9 +71,8 @@ class BasicRNN(nn.Module):
         return out
 
 
-
 class GRU(nn.Module):
-    def __init__(self, input_size=1, hidden_size=64, num_layers=2, output_size=1):
+    def __init__(self, input_size=1, hidden_size=64, num_layers=1, output_size=1):
         super(GRU, self).__init__()
         self.hidden_size = hidden_size
 
@@ -83,6 +81,20 @@ class GRU(nn.Module):
 
     def forward(self, x):
         out, _ = self.gru(x)
+        out = self.fc(out[:, -1, :])
+        return out
+
+
+class LSTM(nn.Module):
+    def __init__(self, input_size=1, hidden_size=64, num_layers=1, output_size=1):
+        super(LSTM, self).__init__()
+        self.hidden_size = hidden_size
+
+        self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True)
+        self.fc = nn.Linear(hidden_size, output_size)
+
+    def forward(self, x):
+        out, _ = self.lstm(x)
         out = self.fc(out[:, -1, :])
         return out
 
@@ -100,7 +112,7 @@ def test_model(model, train_loader, test_loader, scaler, epochs=50, lr=0.001):
             batch_X, batch_y = batch_X.to(device), batch_y.to(device)
             optimizer.zero_grad()
             outputs = model(batch_X)
-            loss = criterion(outputs, batch_y.view(-1, 1))
+            loss = criterion(outputs, batch_y.squeeze(-1))
             loss.backward()
             optimizer.step()
 
@@ -112,8 +124,11 @@ def test_model(model, train_loader, test_loader, scaler, epochs=50, lr=0.001):
         test_X, test_y = test_X.to(device), test_y.to(device)
         test_preds = model(test_X)
 
-        actual_prices = scaler.inverse_transform(test_y.cpu().numpy().reshape(-1, 1))
-        predicted_prices = scaler.inverse_transform(test_preds.cpu().numpy().reshape(-1, 1))
+        test_y_np = test_y.cpu().numpy().reshape(-1, 1)
+        test_preds_np = test_preds.cpu().numpy().reshape(-1, 1)
+
+        actual_prices = scaler.inverse_transform(test_y_np).reshape(-1, output_size)
+        predicted_prices = scaler.inverse_transform(test_preds_np).reshape(-1, output_size)
 
         mae = np.mean(np.abs(actual_prices - predicted_prices))
 
@@ -133,12 +148,12 @@ def test_model(model, train_loader, test_loader, scaler, epochs=50, lr=0.001):
     print()
 
 
-
 if __name__ == '__main__':
     print(f"Using device: {device}")
     tickers = ['AAPL', 'GOOG', 'AMD', 'NVDA']
 
-    all_data = getData(tickers,M=50, N=1)
+    output_size = 1
+    all_data = getData(tickers, M=50, N=output_size)
 
     print('Basic RNN\n')
     for ticker in tickers:
@@ -150,7 +165,7 @@ if __name__ == '__main__':
         train_loader = DataLoader(train_ds, batch_size=32, shuffle=True)
         test_loader = DataLoader(test_ds, batch_size=32, shuffle=False)
 
-        modelRNN = BasicRNN(input_size=1, hidden_size=64, num_layers=1)
+        modelRNN = BasicRNN(output_size=output_size)
         test_model(modelRNN, train_loader, test_loader, data['scaler'])
 
     print('\nGRU\n')
@@ -163,8 +178,18 @@ if __name__ == '__main__':
         train_loader = DataLoader(train_ds, batch_size=32, shuffle=True)
         test_loader = DataLoader(test_ds, batch_size=32, shuffle=False)
 
-        modelGRU = GRU(input_size=1, hidden_size=64, num_layers=1, output_size=1)
+        modelGRU = GRU(output_size=output_size)
         test_model(modelGRU, train_loader, test_loader, data['scaler'])
 
+    print('\nLSTM\n')
+    for ticker in tickers:
+        print(ticker)
+        data = all_data[ticker]
+        train_ds = TensorDataset(data['train'][0], data['train'][1])
+        test_ds = TensorDataset(data['test'][0], data['test'][1])
 
+        train_loader = DataLoader(train_ds, batch_size=32, shuffle=True)
+        test_loader = DataLoader(test_ds, batch_size=32, shuffle=False)
 
+        modelLSTM = LSTM(output_size=output_size)
+        test_model(modelLSTM, train_loader, test_loader, data['scaler'])

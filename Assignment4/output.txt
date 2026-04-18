@@ -1,23 +1,23 @@
 Basic RNN
 
 AAPL
-Time Cost of Learning: 6.22 seconds
-Mean Absolute Error (MAE):    3.5852
-Mean Squared Error (MSE):     23.6006
-Root Mean Squared Error (RMSE): 4.8580
+Time Cost of Learning: 6.18 seconds
+Mean Absolute Error (MAE):    3.5853
+Mean Squared Error (MSE):     23.6012
+Root Mean Squared Error (RMSE): 4.8581
 Mean Absolute Percentage Error (MAPE): 1.56%
 Estimated Test Accuracy:      98.44%
 
 GOOG
-Time Cost of Learning: 6.62 seconds
-Mean Absolute Error (MAE):    5.8365
-Mean Squared Error (MSE):     78.3966
-Root Mean Squared Error (RMSE): 8.8542
+Time Cost of Learning: 6.38 seconds
+Mean Absolute Error (MAE):    5.8364
+Mean Squared Error (MSE):     78.3940
+Root Mean Squared Error (RMSE): 8.8540
 Mean Absolute Percentage Error (MAPE): 2.46%
 Estimated Test Accuracy:      97.54%
 
 AMD
-Time Cost of Learning: 6.67 seconds
+Time Cost of Learning: 6.45 seconds
 Mean Absolute Error (MAE):    4.3300
 Mean Squared Error (MSE):     39.2657
 Root Mean Squared Error (RMSE): 6.2662
@@ -25,7 +25,7 @@ Mean Absolute Percentage Error (MAPE): 2.74%
 Estimated Test Accuracy:      97.26%
 
 NVDA
-Time Cost of Learning: 6.67 seconds
+Time Cost of Learning: 6.46 seconds
 Mean Absolute Error (MAE):    5.0520
 Mean Squared Error (MSE):     38.0861
 Root Mean Squared Error (RMSE): 6.1714
@@ -36,23 +36,23 @@ Estimated Test Accuracy:      96.59%
 GRU
 
 AAPL
-Time Cost of Learning: 6.77 seconds
+Time Cost of Learning: 6.71 seconds
 Mean Absolute Error (MAE):    3.6426
-Mean Squared Error (MSE):     25.3663
+Mean Squared Error (MSE):     25.3664
 Root Mean Squared Error (RMSE): 5.0365
 Mean Absolute Percentage Error (MAPE): 1.60%
 Estimated Test Accuracy:      98.40%
 
 GOOG
-Time Cost of Learning: 6.86 seconds
-Mean Absolute Error (MAE):    4.6502
-Mean Squared Error (MSE):     46.7465
-Root Mean Squared Error (RMSE): 6.8371
+Time Cost of Learning: 6.73 seconds
+Mean Absolute Error (MAE):    4.6503
+Mean Squared Error (MSE):     46.7467
+Root Mean Squared Error (RMSE): 6.8372
 Mean Absolute Percentage Error (MAPE): 2.04%
 Estimated Test Accuracy:      97.96%
 
 AMD
-Time Cost of Learning: 6.74 seconds
+Time Cost of Learning: 6.80 seconds
 Mean Absolute Error (MAE):    4.5952
 Mean Squared Error (MSE):     43.0144
 Root Mean Squared Error (RMSE): 6.5585
@@ -60,9 +60,44 @@ Mean Absolute Percentage Error (MAPE): 2.92%
 Estimated Test Accuracy:      97.08%
 
 NVDA
-Time Cost of Learning: 6.77 seconds
+Time Cost of Learning: 6.67 seconds
 Mean Absolute Error (MAE):    3.3783
 Mean Squared Error (MSE):     19.8879
 Root Mean Squared Error (RMSE): 4.4596
 Mean Absolute Percentage Error (MAPE): 2.44%
 Estimated Test Accuracy:      97.56%
+
+
+LSTM
+
+AAPL
+Time Cost of Learning: 6.71 seconds
+Mean Absolute Error (MAE):    5.3981
+Mean Squared Error (MSE):     46.5395
+Root Mean Squared Error (RMSE): 6.8220
+Mean Absolute Percentage Error (MAPE): 2.34%
+Estimated Test Accuracy:      97.66%
+
+GOOG
+Time Cost of Learning: 6.78 seconds
+Mean Absolute Error (MAE):    4.1490
+Mean Squared Error (MSE):     29.0233
+Root Mean Squared Error (RMSE): 5.3873
+Mean Absolute Percentage Error (MAPE): 2.02%
+Estimated Test Accuracy:      97.98%
+
+AMD
+Time Cost of Learning: 6.74 seconds
+Mean Absolute Error (MAE):    5.0809
+Mean Squared Error (MSE):     49.6985
+Root Mean Squared Error (RMSE): 7.0497
+Mean Absolute Percentage Error (MAPE): 3.25%
+Estimated Test Accuracy:      96.75%
+
+NVDA
+Time Cost of Learning: 6.66 seconds
+Mean Absolute Error (MAE):    4.8454
+Mean Squared Error (MSE):     38.1388
+Root Mean Squared Error (RMSE): 6.1757
+Mean Absolute Percentage Error (MAPE): 3.52%
+Estimated Test Accuracy:      96.48%
