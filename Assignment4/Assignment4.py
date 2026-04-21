@@ -57,52 +57,71 @@ def getData(tickers, M=50, N=1, train_split=0.8):
 
 
 class BasicRNN(nn.Module):
-    def __init__(self, input_size=1, hidden_size=64, num_layers=1, output_size=1):
+    def __init__(self, input_size=1, hidden_size=64, num_layers=2, output_size=1):
         super(BasicRNN, self).__init__()
         self.hidden_size = hidden_size
-
-        self.rnn = nn.RNN(input_size, hidden_size, num_layers, batch_first=True)
-
+        self.num_layers = num_layers
+        self.rnn = nn.RNN(input_size, hidden_size, num_layers, batch_first=True, dropout=0.2)
+        self.bn = nn.BatchNorm1d(hidden_size)
         self.fc = nn.Linear(hidden_size, output_size)
 
     def forward(self, x):
-        out, _ = self.rnn(x)
-        out = self.fc(out[:, -1, :])
-        return out
+        h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(device)
+
+        out, hn = self.rnn(x, h0)
+
+        last_hidden = hn[-1]
+
+        out = self.bn(last_hidden)
+        return self.fc(out)
 
 
 class GRU(nn.Module):
-    def __init__(self, input_size=1, hidden_size=64, num_layers=1, output_size=1):
+    def __init__(self, input_size=1, hidden_size=64, num_layers=2, output_size=1):
         super(GRU, self).__init__()
         self.hidden_size = hidden_size
-
-        self.gru = nn.GRU(input_size, hidden_size, num_layers, batch_first=True)
+        self.num_layers = num_layers
+        self.gru = nn.GRU(input_size, hidden_size, num_layers, batch_first=True, dropout=0.2)
+        self.bn = nn.BatchNorm1d(hidden_size)
         self.fc = nn.Linear(hidden_size, output_size)
 
     def forward(self, x):
-        out, _ = self.gru(x)
-        out = self.fc(out[:, -1, :])
-        return out
+        h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(device)
+        out, hn = self.gru(x, h0)
+
+        last_hidden = hn[-1]
+
+        out = self.bn(last_hidden)
+        return self.fc(out)
 
 
 class LSTM(nn.Module):
-    def __init__(self, input_size=1, hidden_size=64, num_layers=1, output_size=1):
+    def __init__(self, input_size=1, hidden_size=64, num_layers=2, output_size=1):
         super(LSTM, self).__init__()
         self.hidden_size = hidden_size
-
-        self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True)
+        self.num_layers = num_layers
+        self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True, dropout=0.2)
+        self.bn = nn.BatchNorm1d(hidden_size)
         self.fc = nn.Linear(hidden_size, output_size)
 
     def forward(self, x):
-        out, _ = self.lstm(x)
-        out = self.fc(out[:, -1, :])
-        return out
+        h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(device)
+        c0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(device)
+
+        out, (hn, cn) = self.lstm(x, (h0, c0))
+
+        last_hidden = hn[-1]
+
+        out = self.bn(last_hidden)
+        return self.fc(out)
 
 
 def test_model(model, train_loader, test_loader, scaler, epochs=50, lr=0.001):
     model.to(device)
     criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=lr)
+
+    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.5)
 
     start_time = time.time()
 
@@ -115,6 +134,7 @@ def test_model(model, train_loader, test_loader, scaler, epochs=50, lr=0.001):
             loss = criterion(outputs, batch_y.squeeze(-1))
             loss.backward()
             optimizer.step()
+        scheduler.step()
 
     total_time = time.time() - start_time
 
