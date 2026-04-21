@@ -1,10 +1,12 @@
 import math
+import os
 import time
 
 import numpy as np
 import torch
 import torch.optim as optim
 import yfinance as yf
+from matplotlib import pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
 from torch import nn
 from torch.utils.data import TensorDataset, DataLoader
@@ -116,7 +118,7 @@ class LSTM(nn.Module):
         return self.fc(out)
 
 
-def test_model(model, train_loader, test_loader, scaler, epochs=50, lr=0.001):
+def test_model(model, train_loader, test_loader, scaler, epochs=50, lr=0.001,model_name=""):
     model.to(device)
     criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=lr)
@@ -144,11 +146,27 @@ def test_model(model, train_loader, test_loader, scaler, epochs=50, lr=0.001):
         test_X, test_y = test_X.to(device), test_y.to(device)
         test_preds = model(test_X)
 
+        N_out = model.fc.out_features
         test_y_np = test_y.cpu().numpy().reshape(-1, 1)
         test_preds_np = test_preds.cpu().numpy().reshape(-1, 1)
 
-        actual_prices = scaler.inverse_transform(test_y_np).reshape(-1, output_size)
-        predicted_prices = scaler.inverse_transform(test_preds_np).reshape(-1, output_size)
+        actual_prices = scaler.inverse_transform(test_y_np).reshape(-1, N_out)
+        predicted_prices = scaler.inverse_transform(test_preds_np).reshape(-1, N_out)
+
+        plt.figure(figsize=(14, 7))
+
+        plt.plot(actual_prices[:, 0], label='Actual Price', color='blue', linewidth=1.5)
+        plt.plot(predicted_prices[:, 0], label='Predicted Price', color='red', linestyle='--', linewidth=1.5)
+
+        plt.title(f'{ticker} Stock Price Prediction - {model_name}')
+        plt.xlabel('Time (Test Data Points)')
+        plt.ylabel('Price (USD)')
+        plt.legend()
+        plt.grid(True, alpha=0.3)
+
+        save_path = os.path.join("stock_plots", f"{ticker}_{model_name}_prediction.png")
+        plt.savefig(save_path)
+        plt.show()
 
         mae = np.mean(np.abs(actual_prices - predicted_prices))
 
@@ -186,7 +204,7 @@ if __name__ == '__main__':
         test_loader = DataLoader(test_ds, batch_size=32, shuffle=False)
 
         modelRNN = BasicRNN(output_size=output_size)
-        test_model(modelRNN, train_loader, test_loader, data['scaler'])
+        test_model(modelRNN, train_loader, test_loader, data['scaler'],model_name="RNN")
 
     print('\nGRU\n')
     for ticker in tickers:
@@ -199,7 +217,7 @@ if __name__ == '__main__':
         test_loader = DataLoader(test_ds, batch_size=32, shuffle=False)
 
         modelGRU = GRU(output_size=output_size)
-        test_model(modelGRU, train_loader, test_loader, data['scaler'])
+        test_model(modelGRU, train_loader, test_loader, data['scaler'],model_name="GRU")
 
     print('\nLSTM\n')
     for ticker in tickers:
@@ -212,4 +230,4 @@ if __name__ == '__main__':
         test_loader = DataLoader(test_ds, batch_size=32, shuffle=False)
 
         modelLSTM = LSTM(output_size=output_size)
-        test_model(modelLSTM, train_loader, test_loader, data['scaler'])
+        test_model(modelLSTM, train_loader, test_loader, data['scaler'],model_name="LSTM")
