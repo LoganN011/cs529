@@ -118,17 +118,21 @@ class LSTM(nn.Module):
         return self.fc(out)
 
 
-def test_model(model, train_loader, test_loader, scaler, epochs=50, lr=0.001,model_name=""):
+def test_model(model, train_loader, test_loader, scaler, epochs=50, lr=0.001, model_name=""):
     model.to(device)
     criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=lr)
 
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.5)
 
+    os.makedirs("stock_plots", exist_ok=True)
+    os.makedirs("loss_plots", exist_ok=True)
+    history = []
     start_time = time.time()
 
     model.train()
     for epoch in range(epochs):
+        epoch_loss = 0
         for batch_X, batch_y in train_loader:
             batch_X, batch_y = batch_X.to(device), batch_y.to(device)
             optimizer.zero_grad()
@@ -136,9 +140,20 @@ def test_model(model, train_loader, test_loader, scaler, epochs=50, lr=0.001,mod
             loss = criterion(outputs, batch_y.squeeze(-1))
             loss.backward()
             optimizer.step()
+            epoch_loss += loss.item()
         scheduler.step()
+        history.append(epoch_loss / len(train_loader))
 
     total_time = time.time() - start_time
+
+    plt.figure(figsize=(10, 5))
+    plt.plot(history, color='orange', label='Training Loss')
+    plt.title(f'{ticker} Training Loss - {model_name}')
+    plt.xlabel('Epoch')
+    plt.ylabel('MSE Loss')
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    plt.savefig(os.path.join("loss_plots", f"{ticker}_{model_name}_loss.png"))
 
     model.eval()
     with torch.no_grad():
@@ -204,7 +219,7 @@ if __name__ == '__main__':
         test_loader = DataLoader(test_ds, batch_size=32, shuffle=False)
 
         modelRNN = BasicRNN(output_size=output_size)
-        test_model(modelRNN, train_loader, test_loader, data['scaler'],model_name="RNN")
+        test_model(modelRNN, train_loader, test_loader, data['scaler'], model_name="RNN")
 
     print('\nGRU\n')
     for ticker in tickers:
@@ -217,7 +232,7 @@ if __name__ == '__main__':
         test_loader = DataLoader(test_ds, batch_size=32, shuffle=False)
 
         modelGRU = GRU(output_size=output_size)
-        test_model(modelGRU, train_loader, test_loader, data['scaler'],model_name="GRU")
+        test_model(modelGRU, train_loader, test_loader, data['scaler'], model_name="GRU")
 
     print('\nLSTM\n')
     for ticker in tickers:
@@ -230,4 +245,4 @@ if __name__ == '__main__':
         test_loader = DataLoader(test_ds, batch_size=32, shuffle=False)
 
         modelLSTM = LSTM(output_size=output_size)
-        test_model(modelLSTM, train_loader, test_loader, data['scaler'],model_name="LSTM")
+        test_model(modelLSTM, train_loader, test_loader, data['scaler'], model_name="LSTM")
