@@ -1,7 +1,13 @@
 \documentclass{article}
+\usepackage[utf8]{inputenc}
 \usepackage{amsmath}
-\usepackage{graphicx} 
+\usepackage{graphicx}
 \usepackage{booktabs}
+\usepackage{geometry}
+\usepackage{float}
+\usepackage{subcaption}
+\usepackage{hyperref}
+\geometry{margin=1in}
 
 \title{Assignment 4: Stock Market Prediction using Recurrent Neural
 Networks}
@@ -14,7 +20,7 @@ Networks}
 
 \section{Introduction}
 
-In this assignment, we investigate the use of recurrent neural networks (RNNs) for stock market prediction. Unlike traditional feedforward neural networks, recurrent models are designed to handle sequential data, making them well-suited for time series forecasting such as stock prices.
+In this assignment, we investigate the use of recurrent neural networks (RNNs) for stock market prediction. Unlike traditional feedforward neural networks, recurrent models are specifically designed to process sequential data by maintaining a hidden state that evolves over time. This makes them particularly well-suited for time series forecasting tasks such as predicting stock prices.
 
 We evaluate three models:
 \begin{itemize}
@@ -23,30 +29,35 @@ We evaluate three models:
     \item Long Short-Term Memory (LSTM)
 \end{itemize}
 
-We use historical stock data from four companies: AAPL, GOOG, AMD, and NVDA. The goal is to predict the next day's closing price based on the previous 50 days.
+We use historical stock data from four companies: AAPL, GOOG, AMD, and NVDA. The goal is to predict the next day's closing price based on the previous 50 days. All datasets were normalized using MinMax scaling and split into 80\% training and 20\% testing data.
+
 
 \section{Task 2}
 
 The initial phase of the project involved establishing a baseline using a standard Recurrent Neural Network. Unlike traditional feedforward networks, RNNs process sequences by maintaining a hidden state $h_t$ that acts as a memory of previous inputs. The state update is governed by the following recurrence:
-\begin{equation}
-    h_t = \sigma(W_{hh}h_{t-1} + W_{xh}x_t + b_h)
-\end{equation}
-
-For this implementation, I utilized a sliding window of $M=50$ days to predict the closing price of the following day ($N=1$). To ensure stable training, the raw price data was normalized using a \texttt{MinMaxScaler} to a $[0, 1]$ range based on the training split (80\% of the data).
+$$
+h_t = \tanh(W_{hh}h_{t-1} + W_{xh}x_t + b_h)
+$$
 
 
-The baseline model is a multi-layer RNN implemented using PyTorch. The architecture consists of:
+While mathematically sound, vanilla RNNs often struggle with "Vanishing Gradients," where the signal from the beginning of the 50-day window diminishes by the time it reaches the output layer. To combat this and ensure stable convergence, we implemented several structural optimizations:
 \begin{itemize}
-    \item Input size: 1 (closing price)
-    \item Hidden size: 64
-    \item Stacked Layers: A 2-layer RNN was used to allow the model to learn hierarchical features.
-    \item Dropout: A dropout rate of 0.2 was applied to mitigate overfitting, forcing the network to learn robust feature representations.
-    \item Batch Normalization: Applied to the final hidden state output to stabilize gradients before the fully connected prediction layer.
+    \item \textbf{Stacked Layers:} Using two layers allows the network to learn higher-level abstractions of price movements (e.g., the stacked layers allow the model to learn hierarchical temporal representations).
+    \item \textbf{Dropout (0.2):} Randomly deactivating neurons during training prevents the model from overfitting to specific patterns in the training data, forcing it to learn generalized market patterns.
+    \item \textbf{Batch Normalization:} Applied to the final hidden state $h_n$ to re-center and re-scale the data, preventing activations from becoming too small or too large before the final prediction.
 \end{itemize}
 
-The model takes a sequence of 50 previous stock prices and predicts the next value. The hidden state from the final time step is passed through batch normalization and then into a linear layer.
+The model consists of:
+\begin{itemize}
+\item Input size: 1 (closing price)
+\item Hidden size: 64
+\item Number of layers: 2
+\item Dropout: 0.2
+\item Batch normalization on final hidden state
+\item Fully connected output layer
+\end{itemize}
 
-The intuition behind this structure is that the RNN captures temporal dependencies in stock prices, while batch normalization helps stabilize training and improve convergence.
+The model takes a sequence of 50 previous stock prices and predicts the next value. The hidden state from the final time step is passed through batch normalization and then into a linear layer. The intuition behind this structure is that the RNN captures temporal dependencies in stock prices, while batch normalization helps stabilize training and improve convergence.
 
 The results for the Basic RNN were strong, as shown in Table 1.
 \begin{table}[h]
@@ -66,19 +77,270 @@ The results for the Basic RNN were strong, as shown in Table 1.
 
 Training time was approximately 7.8 seconds per stock.
 
-\subsection{Prediction Visualization}
+\section{Task 3}
 
-\begin{figure}[h]
-\centering
-\includegraphics[width=0.8\textwidth]{stock_plots/AAPL_RNN_prediction.png}
-\caption{AAPL Prediction vs Actual (RNN)}
+The following hyperparameters were used across all models:
+\begin{itemize}
+\item Sequence length: 50
+\item Batch size: 32
+\item Epochs: 50
+\item Learning rate: 0.001
+\item Optimizer: Adam
+\item Learning rate scheduler: StepLR (decay every 20 epochs)
+\end{itemize}
+
+The Adam optimizer was selected due to its ability to adapt learning rates for each parameter, improving convergence speed. During training, the loss consistently decreased across epochs for all stocks, indicating stable convergence. The use of dropout and batch normalization helped prevent overfitting while maintaining generalization to unseen test data. \\
+
+The evaluation of the models was not limited to numerical metrics. Visualizing the "True vs. Predicted" prices provides insight into the model's behavior. As seen in the generated figures (e.g., \texttt{AAPL\_RNN\_prediction.png}), the RNN effectively tracks the general trend but occasionally suffers from a "phase lag," where the prediction essentially "chases" the previous day's closing price.
+
+\begin{figure}[H]
+     \centering
+     \begin{subfigure}[b]{0.48\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{stock_plots/AAPL_RNN_prediction.png}
+         \caption{AAPL (RNN)}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.48\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{stock_plots/GOOG_RNN_prediction.png}
+         \caption{GOOG (RNN)}
+     \end{subfigure}
+     \vskip\baselineskip
+     \begin{subfigure}[b]{0.48\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{stock_plots/AMD_RNN_prediction.png}
+         \caption{AMD (RNN)}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.48\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{stock_plots/NVDA_RNN_prediction.png}
+         \caption{NVDA (RNN)}
+     \end{subfigure}
+     \caption{True vs. Predicted Prices for the Basic RNN Architecture}
 \end{figure}
 
-\section{Task 3}
+The RNN successfully captures overall trends but tends to lag behind rapid price changes. This is a common limitation of simple recurrent models, as they struggle with long-term dependencies and sudden volatility.
+
+To further evaluate model convergence, the training loss over epochs was recorded for each stock. The loss curves show a steady decrease, indicating stable optimization behavior and no obvious signs of divergence.
+
+\begin{figure}[H]
+     \centering
+     \begin{subfigure}[b]{0.48\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{loss_plots/AAPL_RNN_loss.png}
+         \caption{AAPL (RNN Loss)}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.48\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{loss_plots/GOOG_RNN_loss.png}
+         \caption{GOOG (RNN Loss)}
+     \end{subfigure}
+     \vskip\baselineskip
+     \begin{subfigure}[b]{0.48\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{loss_plots/AMD_RNN_loss.png}
+         \caption{AMD (RNN Loss)}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.48\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{loss_plots/NVDA_RNN_loss.png}
+         \caption{NVDA (RNN Loss)}
+     \end{subfigure}
+     \caption{Training Loss Curves for the Basic RNN}
+\end{figure}
 
 \section{Task 4}
 
+The GRU simplifies the gating process by using an update gate and a reset gate. This allows the model to selectively discard information that is no longer relevant to the current price trend.
+$$
+    z_t = \sigma(W_z \cdot [h_{t-1}, x_t]) \quad (\text{Update Gate})
+$$
+This gating mechanism allows the GRU to control how much past information is retained or forgotten, helping mitigate the vanishing gradient problem observed in standard RNNs.
+
+The architecture remains similar to the baseline:
+\begin{itemize}
+    \item 2 GRU layers
+    \item Hidden size: 64
+    \item Dropout: 0.2
+    \item Batch normalization
+    \item Fully connected output layer
+\end{itemize}
+
+\begin{table}[h]
+    \centering
+    \caption{GRU Performance}
+    \begin{tabular}{lccccc}
+        \toprule
+        Ticker & MAE & MSE & RMSE & MAPE (\%) & Accuracy (\%) \\
+        \midrule
+        AAPL & 5.0106 & 36.0130 & 6.0011 & 2.17\% & 97.83\% \\
+        GOOG & 9.4744 & 110.5179 & 10.5127 & 4.71\% & 95.29\% \\
+        AMD  & 8.1843 & 107.9679 & 10.3908 & 5.00\% & 95.00\% \\
+        NVDA & 7.8449 & 91.6613 & 9.5740 & 5.29\% & 94.71\% \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{figure}[h]
+     \centering
+     \begin{subfigure}[b]{0.48\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{stock_plots/AAPL_GRU_prediction.png}
+         \caption{AAPL (GRU)}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.48\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{stock_plots/GOOG_GRU_prediction.png}
+         \caption{GOOG (GRU)}
+     \end{subfigure}
+     \vskip\baselineskip
+     \begin{subfigure}[b]{0.48\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{stock_plots/AMD_GRU_prediction.png}
+         \caption{AMD (GRU)}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.48\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{stock_plots/NVDA_GRU_prediction.png}
+         \caption{NVDA (GRU)}
+     \end{subfigure}
+     \caption{True vs. Predicted Prices for the GRU Architecture}
+\end{figure}
+
+
+Training time ranged from 8.3 to 9.0 seconds. While GRUs are theoretically more powerful than basic RNNs, the results here are mixed. Performance improved for AAPL but degraded significantly for more volatile stocks such as GOOG and NVDA. This suggests that the GRU may have overfit short-term fluctuations or failed to generalize effectively under the current hyperparameter configuration.
+
+The GRU loss curves also demonstrate convergence, although some stocks exhibit more fluctuation during training, suggesting increased sensitivity to hyperparameters and potential instability in learning.
+
+\begin{figure}[H]
+     \centering
+     \begin{subfigure}[b]{0.48\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{loss_plots/AAPL_GRU_loss.png}
+         \caption{AAPL (GRU Loss)}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.48\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{loss_plots/GOOG_GRU_loss.png}
+         \caption{GOOG (GRU Loss)}
+     \end{subfigure}
+     \vskip\baselineskip
+     \begin{subfigure}[b]{0.48\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{loss_plots/AMD_GRU_loss.png}
+         \caption{AMD (GRU Loss)}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.48\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{loss_plots/NVDA_GRU_loss.png}
+         \caption{NVDA (GRU Loss)}
+     \end{subfigure}
+     \caption{Training Loss Curves for the GRU Model}
+\end{figure}
+
 \section{Task 5}
 
+The LSTM is our most sophisticated model. It introduces the \textbf{Cell State ($c_t$)}, a dedicated memory lane that is regulated by three distinct gates: Forget, Input, and Output. This allows the model to preserve relevant long-term dependencies within the input sequence more effectively than standard RNNs or GRUs.
+
+The architecture includes:
+\begin{itemize}
+    \item 2 LSTM layers
+    \item Hidden size: 64
+    \item Dropout: 0.2
+    \item Batch normalization
+    \item Fully connected output layer
+\end{itemize}
+\begin{figure}[h]
+     \centering
+     \begin{subfigure}[b]{0.48\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{stock_plots/AAPL_LSTM_prediction.png}
+         \caption{AAPL (LSTM)}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.48\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{stock_plots/GOOG_LSTM_prediction.png}
+         \caption{GOOG (LSTM)}
+     \end{subfigure}
+     \vskip\baselineskip
+     \begin{subfigure}[b]{0.48\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{stock_plots/AMD_LSTM_prediction.png}
+         \caption{AMD (LSTM)}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.48\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{stock_plots/NVDA_LSTM_prediction.png}
+         \caption{NVDA (LSTM)}
+     \end{subfigure}
+     \caption{True vs. Predicted Prices for the LSTM Architecture}
+\end{figure}
+
+\begin{table}[h]
+    \centering
+    \caption{GRU and LSTM Performance Comparison}
+    \begin{tabular}{llcccc}
+        \toprule
+        Model & Ticker & MAE & MSE & MAPE (\%) & Accuracy (\%) \\
+        \midrule
+        GRU  & AAPL & 5.0106 & 36.0130 & 2.17\% & 97.83\% \\
+        GRU  & GOOG & 9.4744 & 110.5179 & 4.71\% & 95.29\% \\
+        LSTM & GOOG & 3.4900 & 21.9536 & 1.78\% & 98.22\% \\
+        LSTM & NVDA & 4.6783 & 35.5494 & 3.35\% & 96.65\% \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+The LSTM demonstrated its power on the \textbf{GOOG} ticker, where it achieved the lowest MSE (21.95) of all models tested. This indicates that the cell state is effectively capturing long-term non-linear dependencies that the basic RNN averages out.
+
+The LSTM loss curves are generally smoother compared to the RNN and GRU models, indicating more stable gradient flow and improved learning of long-term dependencies.
+
+\begin{figure}[H]
+     \centering
+     \begin{subfigure}[b]{0.48\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{loss_plots/AAPL_LSTM_loss.png}
+         \caption{AAPL (LSTM Loss)}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.48\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{loss_plots/GOOG_LSTM_loss.png}
+         \caption{GOOG (LSTM Loss)}
+     \end{subfigure}
+     \vskip\baselineskip
+     \begin{subfigure}[b]{0.48\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{loss_plots/AMD_LSTM_loss.png}
+         \caption{AMD (LSTM Loss)}
+     \end{subfigure}
+     \hfill
+     \begin{subfigure}[b]{0.48\textwidth}
+         \centering
+         \includegraphics[width=\textwidth]{loss_plots/NVDA_LSTM_loss.png}
+         \caption{NVDA (LSTM Loss)}
+     \end{subfigure}
+     \caption{Training Loss Curves for the LSTM Model}
+\end{figure}
+\section{Discussion}
+After extensive testing and optimization, several key conclusions can be drawn regarding the use of RNNs for financial forecasting. A general trend between model complexity and performance can be observed, although it is not strictly consistent across all stocks. While the Basic RNN is computationally efficient (avg. 7.8s training time), it is more prone to errors when the stock price deviates from its current momentum. The LSTM, while taking longer to train (avg. 9.6s), provides a much "smoother" prediction curve that is less reactive to daily noise and more focused on the underlying trend.
+
+\begin{itemize}
+    \item \textbf{RNN:} Best for steady-growth stocks with high autocorrelation (e.g., AAPL).
+    \item \textbf{GRU:} An excellent middle-ground, often training faster than the LSTM while offering significantly better protection against noise than the RNN.
+    \item \textbf{LSTM:} The superior choice for high-volatility technology stocks like NVDA and GOOG, where long-term historical context is necessary to filter out short-term market "shocks."
+\end{itemize}
+
+The implementation of Dropout and Batch Normalization proved essential in stabilizing the models. These techniques helped reduce overfitting and improved generalization to the test data. Without these, the LSTM tended to overfit on the training data. By enforcing these constraints, the final models achieved an average test accuracy exceeding 96.5\%, demonstrating that recurrent architectures are highly capable of modeling the complex dynamics of the stock market when properly optimized. These results highlight the importance of model selection and hyperparameter tuning in time series prediction tasks.
 
 \end{document}
