@@ -55,16 +55,16 @@ class Environment:
             next_x-=1
 
         hit = False
-        out_of_grid = not (0 <= next_x < self.height and 0 <= next_y < self.width)
-
-        if out_of_grid:
+        if not (0 <= next_x < self.width and 0 <= next_y < self.height):
             hit = True
             new_state = (x, y)
-        elif self.grid[next_x, next_y] == 0:
+        elif self.grid[next_y, next_x] == 0:  # Check y then x
             hit = True
             new_state = (x, y)
+        else:
+            new_state = (next_x, next_y)
 
-        reward = self._get_reward(state,hit, strategy)
+        reward = self._get_reward(new_state,hit, strategy)
 
         return new_state, reward # add more things here???
 
@@ -75,7 +75,7 @@ class Environment:
             if hit:
                 return -100
             else:
-                return 0
+                return -1
         elif strategy == "S2": #Todo make a better strategy for S2
             if state == self.target:
                 return 100
