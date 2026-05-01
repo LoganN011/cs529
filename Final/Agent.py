@@ -1,7 +1,9 @@
-import numpy as np
 import random
 
+import numpy as np
+
 random.seed(0)
+
 
 class Agent:
     def __init__(self, env, alpha=0.1, gamma=0.5, epsilon=0.1):
@@ -36,8 +38,7 @@ class Agent:
             q_values = [self.get_q(x, y, a) for a in self.env.actions.keys()]
             return np.argmax(q_values)
 
-
-    def update(self,state, action, reward, next_state, next_action, method="Q-Learning"):
+    def update(self, state, action, reward, next_state, next_action, method="Q-Learning"):
         x, y = state
         next_x, next_y = next_state
 
@@ -47,9 +48,8 @@ class Agent:
             max_future_q = max([self.get_q(next_x, next_y, a) for a in self.env.actions.keys()])
             new_q = current_q + self.alpha * (reward + self.gamma * max_future_q - current_q)
         else:
-            #SARSA
+            # SARSA
             next_q = self.get_q(next_x, next_y, next_action)
             new_q = current_q + self.alpha * (reward + self.gamma * next_q - current_q)
-
 
         self.set_q(x, y, action, new_q)

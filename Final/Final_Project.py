@@ -14,7 +14,7 @@ def train(env, agent, episodes, method="Q-Learning", patience=1000):
     consecutive_successes = 0
 
     for episode in tqdm(range(episodes), desc=f"Training {method}"):
-        state = (0, 0)
+        state = env.get_random_start()
         action = agent.choose_action(state)
         total_reward = 0
         steps = 0
