@@ -41,6 +41,11 @@ class Environment:
         self.target = target
         self.width, self.height = self.grid.shape
         self.actions = {0: "up", 1: "down", 2: "right", 3: "left"}
+        self.visited_states = set()
+
+    def reset(self):
+        """Resets the environment for a new episode."""
+        self.visited_states = set()  # Clear memory for S2
 
     def step(self, state, action, strategy="S1"):
         x, y = state
@@ -67,11 +72,12 @@ class Environment:
         else:
             new_state = (next_x, next_y)
 
-        reward = self._get_reward(new_state, hit, strategy)
+        reward = self._get_reward(state,new_state, hit, strategy)
+        self.visited_states.add(tuple(new_state))
 
-        return new_state, reward  # add more things here???
+        return new_state, reward
 
-    def _get_reward(self, state, hit, strategy):
+    def _get_reward(self,old, state, hit, strategy):
         if strategy == "S1":
             if state == self.target:
                 return 100
@@ -79,14 +85,27 @@ class Environment:
                 return -100
             else:
                 return -1
-        elif strategy == "S2":  # Todo make a better strategy for S2
-            if state == self.target:
-                return 100
+        elif strategy == 'S2':
             if hit:
                 return -100
-            else:
-                return -1
+            if state == self.target:
+                return 100
+            reward = -1
 
+            # 2. Distance improvement (Manhattan)
+            old_dist = abs(old[0] - self.target[0]) + abs(old[1] - self.target[1])
+            new_dist = abs(state[0] - self.target[0]) + abs(state[1] - self.target[1])
+
+            if new_dist < old_dist:
+                reward += 2  # Reward for getting closer
+            else:
+                reward -= 2  # Penalty for moving away
+
+            # 3. Visited state penalty
+            # if state in self.visited_states:
+            #     reward -= 2  # Heavy penalty for backtracking
+
+            return reward
         return 0
 
     def plot_map(self):

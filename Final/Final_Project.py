@@ -9,7 +9,7 @@ from Agent import Agent
 from Environment import abstract_map, Environment
 
 
-def train(env, agent, episodes, method="Q-Learning", patience=1000):
+def train(env, agent, episodes, method="Q-Learning",strategy="S1", patience=1000):
     history = {"steps": [], "rewards": []}
     consecutive_successes = 0
 
@@ -18,10 +18,11 @@ def train(env, agent, episodes, method="Q-Learning", patience=1000):
         action = agent.choose_action(state)
         total_reward = 0
         steps = 0
+        env.reset()
         done = False
 
         while not done:
-            next_state, reward = env.step(state, action)
+            next_state, reward = env.step(state, action,strategy=strategy)
             next_action = agent.choose_action(next_state)
             agent.update(state, action, reward, next_state, next_action, method=method)
 
@@ -40,7 +41,7 @@ def train(env, agent, episodes, method="Q-Learning", patience=1000):
         #     consecutive_successes += 1
         # else:
         #     consecutive_successes = 0
-
+        #
         # if consecutive_successes >= patience:
         #     tqdm.write(f" Converged at episode {episode}")
         #     break
@@ -59,7 +60,7 @@ def run_experiment(map_path, method, epsilon, gamma, test_name, strategy="S1"):
 
     # Measure Training Time
     start_time = time.time()
-    history = train(env, agent, episodes=50000, method=method)
+    history = train(env, agent, episodes=50000, method=method,strategy=strategy)
     end_time = time.time()
 
     actual_episodes = len(history["rewards"])
@@ -137,10 +138,10 @@ if __name__ == "__main__":
     best_eps = 0.5
     best_gam = 0.5
 
-    # for method in ["SARSA", "Q-Learning"]:
-    #     for strat in ["S1", "S2"]:
-    #         res = run_experiment(maps[-1],method,best_eps,best_gam,"Strategy_Comparison",strategy=strat)
-    #         results.append(res)
+    for method in ["SARSA", "Q-Learning"]:
+        for strat in ["S1", "S2"]:
+            res = run_experiment(maps[-1],method,best_eps,best_gam,"Strategy_Comparison",strategy=strat)
+            results.append(res)
 
     # --- SAVE RESULTS ---
     keys = results[0].keys()
