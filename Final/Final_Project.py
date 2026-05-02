@@ -68,14 +68,20 @@ def run_experiment(map_path, method, epsilon, gamma, test_name, strategy="S1"):
     # Performance Evaluation (Accuracy logic)
     valid_paths = 0
     total_starts = 0
+    efficiency_scores = []
     for y in range(env.height):
         for x in range(env.width):
             if env.grid[y, x] != 0:  # Check white pixels only
                 total_starts += 1
-                if is_path_valid(env, agent, (x, y)):
+                valid , path_len =is_path_valid(env, agent, (x, y))
+                if valid:
                     valid_paths += 1
+                    if path_len > 0:
+                        efficiency_scores.append((env.get_optimal_path_length((x,y)) / path_len) * 100)
+
 
     accuracy = (valid_paths / total_starts) * 100
+    avg_efficiency = np.mean(efficiency_scores) if efficiency_scores else 0.0
     return {
         "Test_Name": test_name,
         "Map": os.path.basename(map_path),
@@ -84,27 +90,32 @@ def run_experiment(map_path, method, epsilon, gamma, test_name, strategy="S1"):
         "Gamma": gamma,
         "Strategy": strategy,
         "Episodes": actual_episodes,
+        "Average Efficiency": round(avg_efficiency, 2),
         "Time": round(end_time - start_time, 2),
         "Accuracy": round(accuracy, 2)
     }
 
 
 def is_path_valid(env, agent, start_pos, max_steps=200):
-    """Greedy evaluation to see if the agent reaches the goal without hitting obstacles."""
+    """Greedy evaluation. Returns (Success, Path_Length)."""
     state = start_pos
+    path_length = 0
     for _ in range(max_steps):
         if state == env.target:
-            return True
-        # Choose best action (epsilon=0 for testing)
+            return True, path_length
+
         x, y = state
         q_vals = [agent.get_q(x, y, a) for a in env.actions.keys()]
         action = np.argmax(q_vals)
 
         next_state, _ = env.step(state, action)
-        if next_state == state:  # Hit obstacle
-            return False
+        path_length += 1
+
+        if next_state == state:  # Hit obstacle or stayed in place
+            return False, path_length
         state = next_state
-    return False
+
+    return False, path_length
 
 
 if __name__ == "__main__":

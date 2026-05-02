@@ -1,4 +1,5 @@
 import random
+from collections import deque
 
 import cv2
 import numpy as np
@@ -126,6 +127,32 @@ class Environment:
             ry = random.randint(0, self.height - 1)
             if self.grid[rx][ry] == 1:
                 return (rx, ry)
+
+    def get_optimal_path_length(self, start_pos):
+        """
+        Uses BFS to find the absolute shortest path length from start_pos to target.
+        Returns float('inf') if the target is unreachable.
+        """
+        queue = deque([(start_pos, 0)])
+        visited = {start_pos}
+
+        while queue:
+            (curr_x, curr_y), dist = queue.popleft()
+
+            if (curr_x, curr_y) == self.target:
+                return dist
+
+            # Check all 4 possible actions
+            for dx, dy in [(0, 1), (0, -1), (1, 0), (-1, 0)]:
+                nx, ny = curr_x + dx, curr_y + dy
+
+                # Boundary and obstacle check
+                if 0 <= nx < self.width and 0 <= ny < self.height:
+                    if self.grid[ny, nx] == 1 and (nx, ny) not in visited:
+                        visited.add((nx, ny))
+                        queue.append(((nx, ny), dist + 1))
+
+        return float('inf')
 
 
 if __name__ == '__main__':
