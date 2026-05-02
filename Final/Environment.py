@@ -107,16 +107,34 @@ class Environment:
             return reward
         return 0
 
-    def plot_map(self):
-        plt.imshow(self.grid, cmap='gray', extent=(0, self.width, 0, self.height))
-        plt.scatter(self.target[1] + .5, self.height - self.target[0] - .5, c='red', marker='*')
-        plt.title("Abstracted Map Environment")
+    def plot_map(self, path=None,title="Abstracted Map Environment"):
+        fig, ax = plt.subplots(figsize=(8, 8))
 
-        plt.xticks(np.arange(-5, self.width + 6, 5))
-        plt.yticks(np.arange(-5, self.height + 6, 5))
-        plt.xticks(np.arange(0, self.width + 1, 1), minor=True)
-        plt.yticks(np.arange(0, self.height + 1, 1), minor=True)
-        plt.grid(which='both', color='gray', linestyle='-', linewidth=0.2)
+
+        ax.imshow(self.grid, cmap='gray', origin='lower', extent=(0, self.width, 0, self.height))
+
+        ax.scatter(self.target[0] + 0.5, self.target[1] + 0.5, c='red', marker='*', s=150, label='Target', zorder=5)
+
+        if path and len(path) > 0:
+            path_x = [p[0] + 0.5 for p in path]
+            path_y = [p[1] + 0.5 for p in path]
+
+            ax.plot(path_x, path_y, color='cyan', linewidth=2, label='Agent Path', zorder=3)
+            ax.scatter(path_x[0], path_y[0], color='blue', marker='o', s=50, label='Start', zorder=4)
+
+        ax.set_xticks(np.arange(0, self.width + 1, 5))
+        ax.set_yticks(np.arange(0, self.height + 1, 5))
+
+        ax.set_xticks(np.arange(0, self.width + 1, 1), minor=True)
+        ax.set_yticks(np.arange(0, self.height + 1, 1), minor=True)
+
+        ax.grid(which='minor', color='gray', linestyle='-', linewidth=0.3, alpha=0.5)
+        ax.grid(which='major', color='black', linestyle='-', linewidth=0.8, alpha=0.3)
+
+        ax.set_title(title)
+        ax.set_xlim(0, self.width)
+        ax.set_ylim(0, self.height)
+        ax.legend(loc='best')
 
         plt.show()
 

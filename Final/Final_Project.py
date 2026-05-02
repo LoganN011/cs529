@@ -49,7 +49,7 @@ def train(env, agent, episodes, method="Q-Learning",strategy="S1", patience=1000
     return history
 
 
-def run_experiment(map_path, method, epsilon, gamma, test_name, strategy="S1"):
+def run_experiment(map_path, method, epsilon, gamma, test_name, strategy="S1",save_model=False):
     """Runs a single training/testing session and returns performance metrics."""
     # Setup environment
     grid_size = (20, 20) if "map1" in map_path else (40, 40)
@@ -82,6 +82,20 @@ def run_experiment(map_path, method, epsilon, gamma, test_name, strategy="S1"):
 
     accuracy = (valid_paths / total_starts) * 100
     avg_efficiency = np.mean(efficiency_scores) if efficiency_scores else 0.0
+    if save_model:
+        return {
+            "Test_Name": test_name,
+            "Map": os.path.basename(map_path),
+            "Method": method,
+            "Epsilon": epsilon,
+            "Gamma": gamma,
+            "Strategy": strategy,
+            "Episodes": actual_episodes,
+            "Average Efficiency": round(avg_efficiency, 2),
+            "Time": round(end_time - start_time, 2),
+            "Accuracy": round(accuracy, 2)
+        }, agent
+
     return {
         "Test_Name": test_name,
         "Map": os.path.basename(map_path),
@@ -118,6 +132,34 @@ def is_path_valid(env, agent, start_pos, max_steps=200):
     return False, path_length
 
 
+def plot_path(agent, max_steps=200, start=(0, 0),title=None):
+    env = agent.env
+    state = start # (x, y)
+    path = [state]
+
+    for _ in range(max_steps):
+        if state == env.target:
+            break
+
+        x, y = state
+        # Get Q-values using the agent's (x, y) training format
+        q_values = [agent.get_q(x, y, a) for a in env.actions.keys()]
+        action = np.argmax(q_values)
+
+        next_state, _ = env.step(state, action)
+
+        if next_state == state: # Hit a wall
+            break
+
+        state = next_state
+        path.append(state)
+
+    if title:
+        env.plot_map(path=path,title=title)
+    else:
+        env.plot_map(path=path)
+
+
 if __name__ == "__main__":
     results = []
     maps = ["./Input_Maps/map1.bmp", "./Input_Maps/map2.bmp", "./Input_Maps/map3.bmp", "./Input_Maps/map4.bmp"]
@@ -151,9 +193,12 @@ if __name__ == "__main__":
 
     for method in ["SARSA", "Q-Learning"]:
         for strat in ["S1", "S2"]:
-            res = run_experiment(maps[-1],method,best_eps,best_gam,"Strategy_Comparison",strategy=strat)
+            res,a = run_experiment(maps[-1],method,best_eps,best_gam,"Strategy_Comparison",strategy=strat,save_model=True)
             results.append(res)
 
+            plot_path(a, start=(0, 0),title=f"{strat}-{method}")
+
+    # --- COMPARISON 5: Hard Maps ---
     print("\n--- Task 6.5: Harder Maps ---")
 
     advanced_maps = ["./Input_Maps/Advanced_Maps/maze1.bmp","./Input_Maps/Advanced_Maps/U-Map.bmp"]
@@ -161,8 +206,9 @@ if __name__ == "__main__":
     for strat in ["S1","S2"]:
         for method in ["SARSA", "Q-Learning"]:
             for m in advanced_maps:
-                res = run_experiment(m,method,0.5,1,"Hard Maps",strategy=strat)
+                res,a = run_experiment(m,method,0.5,1,"Hard Maps",strategy=strat,save_model=True)
                 results.append(res)
+                plot_path(a, start=(0, 0),title=f"{strat}-{os.path.splitext(os.path.basename(m))[0]}-{method}")
 
     # --- SAVE RESULTS ---
     keys = results[0].keys()
