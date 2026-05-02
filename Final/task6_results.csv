@@ -19,7 +19,7 @@ Gamma_Test,map4.bmp,SARSA,0.5,0.5,S1,50000,28.88,38.06
 Gamma_Test,map4.bmp,Q-Learning,0.5,0.5,S1,50000,27.82,97.92
 Gamma_Test,map4.bmp,SARSA,0.5,1.0,S1,50000,25.67,76.12
 Gamma_Test,map4.bmp,Q-Learning,0.5,1.0,S1,50000,26.04,100.0
-Strategy_Comparison,map4.bmp,SARSA,0.5,1,S1,50000,25.61,73.88
-Strategy_Comparison,map4.bmp,SARSA,0.5,1,S2,50000,25.87,90.66
-Strategy_Comparison,map4.bmp,Q-Learning,0.5,1,S1,50000,25.85,100.0
-Strategy_Comparison,map4.bmp,Q-Learning,0.5,1,S2,50000,25.75,100.0
+Strategy_Comparison,map4.bmp,SARSA,0.5,1,S1,50000,26.27,69.98
+Strategy_Comparison,map4.bmp,SARSA,0.5,1,S2,50000,23.71,100.0
+Strategy_Comparison,map4.bmp,Q-Learning,0.5,1,S1,50000,26.49,100.0
+Strategy_Comparison,map4.bmp,Q-Learning,0.5,1,S2,50000,26.35,100.0

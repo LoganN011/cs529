@@ -96,10 +96,8 @@ class Environment:
             old_dist = abs(old[0] - self.target[0]) + abs(old[1] - self.target[1])
             new_dist = abs(state[0] - self.target[0]) + abs(state[1] - self.target[1])
 
-            if new_dist < old_dist:
-                reward += 2  # Reward for getting closer
-            else:
-                reward -= 2  # Penalty for moving away
+
+            reward += (old_dist - new_dist)*10
 
             # 3. Visited state penalty
             # if state in self.visited_states:
