@@ -136,7 +136,7 @@ if __name__ == "__main__":
     # --- COMPARISON 4: Varying Strategy ---
     print("\n--- Task 6.4: Varying Reward Strategy ---")
     best_eps = 0.5
-    best_gam = 0.5
+    best_gam = 1
 
     for method in ["SARSA", "Q-Learning"]:
         for strat in ["S1", "S2"]:
