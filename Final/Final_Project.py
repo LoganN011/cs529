@@ -154,6 +154,16 @@ if __name__ == "__main__":
             res = run_experiment(maps[-1],method,best_eps,best_gam,"Strategy_Comparison",strategy=strat)
             results.append(res)
 
+    print("\n--- Task 6.5: Harder Maps ---")
+
+    advanced_maps = ["./Input_Maps/Advanced_Maps/maze1.bmp","./Input_Maps/Advanced_Maps/U-Map.bmp"]
+
+    for strat in ["S1","S2"]:
+        for method in ["SARSA", "Q-Learning"]:
+            for m in advanced_maps:
+                res = run_experiment(m,method,0.5,1,"Hard Maps",strategy=strat)
+                results.append(res)
+
     # --- SAVE RESULTS ---
     keys = results[0].keys()
     with open('task6_results.csv', 'w', newline='') as f:
