@@ -1,0 +1,25 @@
+Test_Name,Map,Method,Epsilon,Gamma,Strategy,Episodes,Average Efficiency,Time,Accuracy
+Complexity_Test,map1.bmp,SARSA,0.1,0.5,S1,50000,95.92,6.56,100.0
+Complexity_Test,map1.bmp,Q-Learning,0.1,0.5,S1,50000,100.0,8.08,100.0
+Complexity_Test,map2.bmp,SARSA,0.1,0.5,S1,50000,93.11,23.4,88.74
+Complexity_Test,map2.bmp,Q-Learning,0.1,0.5,S1,50000,99.97,23.72,84.44
+Complexity_Test,map3.bmp,SARSA,0.1,0.5,S1,50000,94.86,45.32,12.9
+Complexity_Test,map3.bmp,Q-Learning,0.1,0.5,S1,50000,99.97,25.28,88.99
+Complexity_Test,map4.bmp,SARSA,0.1,0.5,S1,50000,96.65,35.28,39.97
+Complexity_Test,map4.bmp,Q-Learning,0.1,0.5,S1,50000,100.0,26.98,96.11
+Epsilon_Test,map4.bmp,SARSA,0.0,0.5,S1,50000,99.67,23.57,97.92
+Epsilon_Test,map4.bmp,Q-Learning,0.0,0.5,S1,50000,99.64,27.17,96.11
+Epsilon_Test,map4.bmp,SARSA,0.5,0.5,S1,50000,87.69,28.26,38.24
+Epsilon_Test,map4.bmp,Q-Learning,0.5,0.5,S1,50000,100.0,27.42,97.92
+Epsilon_Test,map4.bmp,SARSA,1.0,0.5,S1,50000,100.0,18.82,0.69
+Epsilon_Test,map4.bmp,Q-Learning,1.0,0.5,S1,50000,100.0,26.27,97.23
+Gamma_Test,map4.bmp,SARSA,0.5,0.1,S1,50000,85.02,37.13,2.42
+Gamma_Test,map4.bmp,Q-Learning,0.5,0.1,S1,50000,100.0,35.72,30.97
+Gamma_Test,map4.bmp,SARSA,0.5,0.5,S1,50000,88.47,28.45,38.06
+Gamma_Test,map4.bmp,Q-Learning,0.5,0.5,S1,50000,100.0,27.61,97.92
+Gamma_Test,map4.bmp,SARSA,0.5,1.0,S1,50000,89.2,25.34,76.12
+Gamma_Test,map4.bmp,Q-Learning,0.5,1.0,S1,50000,98.06,25.95,100.0
+Strategy_Comparison,map4.bmp,SARSA,0.5,1,S1,50000,88.58,25.44,73.88
+Strategy_Comparison,map4.bmp,SARSA,0.5,1,S2,50000,92.71,23.15,100.0
+Strategy_Comparison,map4.bmp,Q-Learning,0.5,1,S1,50000,99.32,25.92,100.0
+Strategy_Comparison,map4.bmp,Q-Learning,0.5,1,S2,50000,99.37,25.91,100.0
