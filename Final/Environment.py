@@ -128,7 +128,7 @@ class Environment:
         while True:
             rx = random.randint(0, self.width - 1)
             ry = random.randint(0, self.height - 1)
-            if self.grid[rx][ry] == 1:
+            if self.grid[ry][rx] == 1:
                 return (rx, ry)
 
     def get_optimal_path_length(self, start_pos):

@@ -1,6 +1,6 @@
 Test_Name,Map,Method,Epsilon,Gamma,Strategy,Episodes,Average Efficiency,Time,Accuracy
 Complexity_Test,map1.bmp,SARSA,0.1,0.5,S1,50000,95.01,17.44,92.55
-Complexity_Test,map1.bmp,Q-Learning,0.1,0.5,S1,50000,99.82,20.91,90.99
+Complexity_Test,map1.bmp,Q-Learning,0.1,0.5,S1,50000,99.82,20.91,94.59
 Complexity_Test,map2.bmp,SARSA,0.1,0.5,S1,50000,93.11,23.4,88.74
 Complexity_Test,map2.bmp,Q-Learning,0.1,0.5,S1,50000,99.97,23.72,84.44
 Complexity_Test,map3.bmp,SARSA,0.1,0.5,S1,50000,94.86,45.32,12.9
@@ -23,3 +23,11 @@ Strategy_Comparison,map4.bmp,SARSA,0.5,1,S1,50000,88.58,25.44,73.88
 Strategy_Comparison,map4.bmp,SARSA,0.5,1,S2,50000,92.71,23.15,100.0
 Strategy_Comparison,map4.bmp,Q-Learning,0.5,1,S1,50000,99.32,25.92,100.0
 Strategy_Comparison,map4.bmp,Q-Learning,0.5,1,S2,50000,99.37,25.91,100.0
+Hard Maps,maze1.bmp,SARSA,0.5,1,S1,50000,95.4,33.24,21.86
+Hard Maps,U-Map.bmp,SARSA,0.5,1,S1,50000,95.59,28.83,90.57
+Hard Maps,maze1.bmp,Q-Learning,0.5,1,S1,50000,99.5,32.87,100.0
+Hard Maps,U-Map.bmp,Q-Learning,0.5,1,S1,50000,98.94,28.95,100.0
+Hard Maps,maze1.bmp,SARSA,0.5,1,S2,50000,94.46,32.71,75.44
+Hard Maps,U-Map.bmp,SARSA,0.5,1,S2,50000,94.09,27.14,100.0
+Hard Maps,maze1.bmp,Q-Learning,0.5,1,S2,50000,99.55,33.35,100.0
+Hard Maps,U-Map.bmp,Q-Learning,0.5,1,S2,50000,98.72,30.35,100.0
