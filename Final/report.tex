@@ -112,83 +112,203 @@ Each experiment was run for 50,000 episodes. Performance was evaluated using:
 
 \subsection{Map Complexity Comparison}
 We tested SARSA and Q-Learning ($\epsilon=0.1, \gamma=0.5$, S1) across four increasingly complex maps.
+
+\subsubsection{Fixed Start Analysis}
 \begin{table}[H]
 \centering
 \begin{tabular}{llccc}
 \toprule
-\textbf{Map} & \textbf{Method} & \textbf{Time (s)} & \textbf{Accuracy (Fixed Start)} & \textbf{Accuracy (Random Start)} \\ \midrule
-Map 1 & SARSA       & 30.60 & 83.39\%  & 100.0\% \\
-Map 1 & Q-Learning  & 14.75 & 100.0\%  & 100.0\% \\
-Map 2 & SARSA       & 56.34 & 1.05\%   & 88.74\% \\
-Map 2 & Q-Learning  & 37.28 & 78.69\%  & 84.44\% \\
-Map 3 & SARSA       & 51.91 & 0.30\%   & 12.90\% \\
-Map 3 & Q-Learning  & 37.72 & 67.19\%  & 88.99\% \\
-Map 4 & SARSA       & 83.26 & 0.17\%   & 39.97\% \\
-Map 4 & Q-Learning  & 43.00 & 69.81\%  & 96.11\% \\ \bottomrule
+\textbf{Map} & \textbf{Method} & \textbf{Time (s)} & \textbf{Average Efficiency (\%)} & \textbf{Accuracy (\%)} \\ \midrule
+Map 1 & SARSA       & 50.76 & 95.71\% & 5.25\% \\
+Map 1 & Q-Learning  & 33.87 & 99.96\% & 75.47\% \\
+Map 2 & SARSA       & 49.65 & 100.00\% & 0.57\% \\
+Map 2 & Q-Learning  & 32.04 & 99.82\% & 80.63\% \\
+Map 3 & SARSA       & 49.26 & 100.00\% & 0.23\% \\
+Map 3 & Q-Learning  & 33.03 & 99.83\% & 65.79\% \\
+Map 4 & SARSA       & 49.41 & 100.00\% & 2.25\% \\
+Map 4 & Q-Learning  & 31.39 & 99.98\% & 68.69\% \\ \bottomrule
 \end{tabular}
-\caption{Performance across varying map complexities (50,000 episodes).}
+\caption{Performance across varying map complexities with a fixed start position (50,000 episodes).}
 \end{table}
 
-\textbf{Discussion:} Q-Learning strictly dominates SARSA across all complexity levels, maintaining much higher accuracy and requiring less training time. SARSA's on-policy nature causes it to learn safer, sometimes overly-conservative policies that fail to reach the target in highly complex, convoluted spaces (like Maps 3 and 4) from a fixed start. Interestingly, utilizing a random start position during training drastically improved performance for both algorithms, particularly Q-Learning, enabling it to generalize and achieve over 96\% accuracy on Map 4. In \texttt{map3}, SARSA's accuracy dropped to 12.90\%, likely because its on-policy nature made it harder to escape local optima compared to Q-Learning's off-policy updates.
+\textbf{Fixed Start Discussion:} With a fixed start position, SARSA performs poorly across all maps, exhibiting low accuracy that quickly drops below $1\%$ on Maps 2 and 3. Its on-policy nature likely makes it overly conservative or trapped in local loops, leading to failure in reaching the target. Q-Learning performs significantly better, maintaining reasonable accuracy between $65\%$ and $80\%$ even on complex maps like Map 4. The times for SARSA are also noticeably longer, indicating that episodes might be hitting the step limit frequently due to poor policies.
+
+\subsubsection{Random Start Analysis}
+\begin{table}[H]
+\centering
+\begin{tabular}{llccc}
+\toprule
+\textbf{Map} & \textbf{Method} & \textbf{Time (s)} & \textbf{Average Efficiency (\%)} & \textbf{Accuracy (\%)} \\ \midrule
+Map 1 & SARSA       & 17.44 & 95.01\% & 92.55\% \\
+Map 1 & Q-Learning  & 20.91 & 99.82\% & 94.59\% \\
+Map 2 & SARSA       & 23.40 & 93.11\% & 88.74\% \\
+Map 2 & Q-Learning  & 23.72 & 99.97\% & 84.44\% \\
+Map 3 & SARSA       & 45.32 & 94.86\% & 12.90\% \\
+Map 3 & Q-Learning  & 25.28 & 99.97\% & 88.99\% \\
+Map 4 & SARSA       & 35.28 & 96.65\% & 39.97\% \\
+Map 4 & Q-Learning  & 26.98 & 100.00\% & 96.11\% \\ \bottomrule
+\end{tabular}
+\caption{Performance across varying map complexities with random start positions (50,000 episodes).}
+\end{table}
+
+\textbf{Random Start Discussion:} Using a random start position during training drastically improves performance, particularly for Q-Learning, enabling it to generalize and achieve over $96\%$ accuracy on Map 4. SARSA also sees massive improvements, jumping from roughly $5\%$ to $92\%$ accuracy on Map 1. However, in Map 3, SARSA's accuracy still drops to $12.90\%$, likely because its on-policy nature makes it harder to escape local optima compared to Q-Learning's off-policy updates. Overall, random starts facilitate better state space exploration, leading to more robust policies and faster training times.
 
 \subsection{Exploration Rate ($\epsilon$) on Map 4}
 We tested different exploration probabilities ($\epsilon \in \{0.0, 0.5, 1.0\}$) using $\gamma=0.5$ and S1.
 
+\subsubsection{Fixed Start Analysis}
 \begin{table}[H]
 \centering
-\begin{tabular}{clcc}
+\begin{tabular}{clccc}
 \toprule
-\textbf{$\epsilon$ Value} & \textbf{Method} & \textbf{Accuracy (Fixed)} & \textbf{Accuracy (Random)} \\ \midrule
-0.0 & SARSA       & 59.86\% & 97.92\% \\
-0.0 & Q-Learning  & 59.86\% & 96.11\% \\
-0.5 & SARSA       & 2.25\%  & 38.24\% \\
-0.5 & Q-Learning  & 76.21\% & 97.92\% \\
-1.0 & SARSA       & 2.25\%  & 0.69\% \\
-1.0 & Q-Learning  & 2.25\%  & 97.23\% \\ \bottomrule
+\textbf{$\epsilon$ Value} & \textbf{Method} & \textbf{Time (s)} & \textbf{Average Efficiency (\%)} & \textbf{Accuracy (\%)} \\ \midrule
+0.0 & SARSA       & 26.40 & 99.94\% & 59.86\% \\
+0.0 & Q-Learning  & 30.39 & 99.94\% & 59.86\% \\
+0.5 & SARSA       & 37.33 & 100.00\% & 2.25\% \\
+0.5 & Q-Learning  & 38.65 & 99.97\% & 75.69\% \\
+1.0 & SARSA       & 18.88 & 100.00\% & 2.25\% \\
+1.0 & Q-Learning  & 26.25 & 100.00\% & 2.25\% \\ \bottomrule
 \end{tabular}
-\caption{Impact of exploration rate on Map 4.}
+\caption{Impact of exploration rate on Map 4 with a fixed start position.}
 \end{table}
 
-\textbf{Discussion:} Extreme exploration ($\epsilon=1.0$) prevented SARSA from converging to any meaningful policy in the fixed start scenario, as the agent constantly took random actions and repeatedly hit obstacles. For Q-Learning under a random start, its off-policy nature allowed it to still learn an optimal Q-table despite taking random actions, maintaining a 97\% accuracy. A balanced approach ($\epsilon=0.5$ or decaying $\epsilon$) or relying purely on random starts ($\epsilon=0$) seemed to provide the best structural learning environments.
+\textbf{Fixed Start Discussion:} With a fixed start, an exploration rate of $0.0$ resulted in identical performance for both SARSA and Q-Learning, achieving around $60\%$ accuracy. As $\epsilon$ increases, SARSA's accuracy collapses to $2.25\%$, indicating that higher exploration forces the on-policy agent into failure states from which it cannot recover. Q-Learning benefits from a balanced $\epsilon=0.5$, reaching $75.69\%$ accuracy, but extreme exploration ($\epsilon=1.0$) prevents even Q-Learning from finding a successful policy under fixed starts.
+
+\subsubsection{Random Start Analysis}
+\begin{table}[H]
+\centering
+\begin{tabular}{clccc}
+\toprule
+\textbf{$\epsilon$ Value} & \textbf{Method} & \textbf{Time (s)} & \textbf{Average Efficiency (\%)} & \textbf{Accuracy (\%)} \\ \midrule
+0.0 & SARSA       & 23.57 & 99.67\% & 97.92\% \\
+0.0 & Q-Learning  & 27.17 & 99.64\% & 96.11\% \\
+0.5 & SARSA       & 28.26 & 87.69\% & 38.24\% \\
+0.5 & Q-Learning  & 27.42 & 100.00\% & 97.92\% \\
+1.0 & SARSA       & 18.82 & 100.00\% & 0.69\% \\
+1.0 & Q-Learning  & 26.27 & 100.00\% & 97.23\% \\ \bottomrule
+\end{tabular}
+\caption{Impact of exploration rate on Map 4 with random start positions.}
+\end{table}
+
+\textbf{Random Start Discussion:} Random starts allow both algorithms to achieve exceptionally high accuracy ($>96\%$) when $\epsilon=0.0$, as the randomness in starting positions naturally provides exploration. Extreme exploration ($\epsilon=1.0$) prevented SARSA from converging to any meaningful policy, as the agent constantly took random actions and hit obstacles. Conversely, Q-Learning's off-policy nature allowed it to still learn an optimal Q-table despite taking random actions, maintaining a $97\%$ accuracy.
 
 
 \subsection{Discount Value ($\gamma$) on Map 4}
 Testing discount factors ($\gamma \in \{0.1, 0.5, 1.0\}$) using $\epsilon=0.5$ and S1.
 
-\begin{table}[H]
-\centering
-\begin{tabular}{clcc}
-\toprule
-\textbf{$\gamma$ Value} & \textbf{Method} & \textbf{Accuracy (Fixed)} & \textbf{Accuracy (Random)} \\ \midrule
-0.1 & SARSA       & 2.25\%  & 2.42\% \\
-0.1 & Q-Learning  & 1.21\%  & 30.97\% \\
-0.5 & SARSA       & 2.25\%  & 38.06\% \\
-0.5 & Q-Learning  & 74.39\% & 97.92\% \\
-1.0 & SARSA       & 61.42\% & 76.12\% \\
-1.0 & Q-Learning  & 68.51\% & 100.0\% \\ \bottomrule
-\end{tabular}
-\caption{Impact of discount factor on Map 4.}
-\end{table}
-
-\textbf{Discussion:} A low $\gamma=0.1$ makes the agents extremely short-sighted, leading to failure in complex environments like Map 4 where the reward (target) is many steps away. Increasing $\gamma$ to $1.0$ massively improved SARSA's fixed-start accuracy from $2\%$ to $61\%$, and allowed Q-Learning to achieve a perfect $100\%$ valid path accuracy in the random-start environment. High discount factors are critical for deep maze solving.
-
-\subsection{Reward Strategy Comparison}
-Using the optimal hyperparameters ($\epsilon=0.5, \gamma=1.0$), we compared the Naive (S1) and Step-Penalized (S2) reward strategies on Map 4.
-
+\subsubsection{Fixed Start Analysis}
 \begin{table}[H]
 \centering
 \begin{tabular}{clccc}
 \toprule
-\textbf{Strategy} & \textbf{Method} & \textbf{Time (s)} & \textbf{Efficiency} & \textbf{Accuracy (Fixed)} \\ \midrule
-S1 & SARSA       & 41.48 & 94.72\% & 63.58\% \\
-S2 & SARSA       & 49.04 & 94.63\% & 64.36\% \\
-S1 & Q-Learning  & 64.89 & 97.56\% & 68.94\% \\
-S2 & Q-Learning  & 51.45 & 99.63\% & 89.62\% \\ \bottomrule
+\textbf{$\gamma$ Value} & \textbf{Method} & \textbf{Time (s)} & \textbf{Average Efficiency (\%)} & \textbf{Accuracy (\%)} \\ \midrule
+0.1 & SARSA       & 36.99 & 100.00\% & 2.25\% \\
+0.1 & Q-Learning  & 45.32 & 100.00\% & 0.61\% \\
+0.5 & SARSA       & 37.31 & 100.00\% & 2.25\% \\
+0.5 & Q-Learning  & 38.57 & 99.98\% & 75.95\% \\
+1.0 & SARSA       & 35.55 & 94.91\% & 61.94\% \\
+1.0 & Q-Learning  & 38.92 & 98.38\% & 64.45\% \\ \bottomrule
 \end{tabular}
-\caption{Performance comparison of Reward Strategies on Map 4.}
+\caption{Impact of discount factor on Map 4 with a fixed start position.}
 \end{table}
 
-\textbf{Discussion:} The S2 strategy significantly boosted Q-Learning's accuracy in the fixed start scenario, pushing it from $68.94\%$ to nearly $90\%$. By penalizing each step, the Q-values accurately reflect the true "cost" of long paths, forcing the algorithm to converge faster and more decisively on the shortest valid route. It is clear that denser, well-shaped rewards (S2) result in more robust policies than purely sparse rewards (S1). Both Q-Learning and SARSA achieved $100\%$ accuracy under S2 with random initializations.
+\textbf{Fixed Start Discussion:} A low discount factor ($\gamma=0.1$) causes both agents to be extremely short-sighted, leading to failure in navigating the map from a fixed start. Increasing $\gamma$ allows the agents to value long-term rewards (reaching the target). For SARSA, $\gamma=1.0$ is necessary to achieve any meaningful accuracy ($61.94\%$), whereas Q-Learning peaks at $\gamma=0.5$ with $75.95\%$ accuracy before slightly degrading at $\gamma=1.0$.
+
+\subsubsection{Random Start Analysis}
+\begin{table}[H]
+\centering
+\begin{tabular}{clccc}
+\toprule
+\textbf{$\gamma$ Value} & \textbf{Method} & \textbf{Time (s)} & \textbf{Average Efficiency (\%)} & \textbf{Accuracy (\%)} \\ \midrule
+0.1 & SARSA       & 37.13 & 85.02\% & 2.42\% \\
+0.1 & Q-Learning  & 35.72 & 100.00\% & 30.97\% \\
+0.5 & SARSA       & 28.45 & 88.47\% & 38.06\% \\
+0.5 & Q-Learning  & 27.61 & 100.00\% & 97.92\% \\
+1.0 & SARSA       & 25.34 & 89.20\% & 76.12\% \\
+1.0 & Q-Learning  & 25.95 & 98.06\% & 100.00\% \\ \bottomrule
+\end{tabular}
+\caption{Impact of discount factor on Map 4 with random start positions.}
+\end{table}
+
+\textbf{Random Start Discussion:} Similar to the fixed start scenario, a low $\gamma=0.1$ results in poor performance because the reward is too many steps away. Increasing $\gamma$ to $1.0$ massively improves SARSA's accuracy from $2.42\%$ to $76.12\%$, and allows Q-Learning to achieve a perfect $100\%$ valid path accuracy in the random-start environment. High discount factors are critical for solving deep mazes.
+
+\subsection{Reward Strategy Comparison}
+Using the optimal hyperparameters ($\epsilon=0.5, \gamma=1.0$), we compared the Naive (S1) and Step-Penalized (S2) reward strategies on Map 4.
+
+\subsubsection{Fixed Start Analysis}
+\begin{table}[H]
+\centering
+\begin{tabular}{clccc}
+\toprule
+\textbf{Strategy} & \textbf{Method} & \textbf{Time (s)} & \textbf{Average Efficiency (\%)} & \textbf{Accuracy (\%)} \\ \midrule
+S1 & SARSA       & 35.75 & 94.59\% & 62.46\% \\
+S2 & SARSA       & 38.14 & 94.43\% & 68.43\% \\
+S1 & Q-Learning  & 38.73 & 98.83\% & 73.01\% \\
+S2 & Q-Learning  & 41.22 & 99.79\% & 89.62\% \\ \bottomrule
+\end{tabular}
+\caption{Performance comparison of Reward Strategies on Map 4 with a fixed start position.}
+\end{table}
+
+\textbf{Fixed Start Discussion:} The S2 strategy significantly boosted Q-Learning's accuracy in the fixed start scenario, pushing it from $73.01\%$ to nearly $90\%$. SARSA also saw a modest improvement from $62.46\%$ to $68.43\%$. By penalizing each step, the Q-values accurately reflect the true "cost" of long paths, forcing the algorithm to converge faster and more decisively on the shortest valid route from the fixed origin.
+
+\subsubsection{Random Start Analysis}
+\begin{table}[H]
+\centering
+\begin{tabular}{clccc}
+\toprule
+\textbf{Strategy} & \textbf{Method} & \textbf{Time (s)} & \textbf{Average Efficiency (\%)} & \textbf{Accuracy (\%)} \\ \midrule
+S1 & SARSA       & 25.44 & 88.58\% & 73.88\% \\
+S2 & SARSA       & 23.15 & 92.71\% & 100.00\% \\
+S1 & Q-Learning  & 25.92 & 99.32\% & 100.00\% \\
+S2 & Q-Learning  & 25.91 & 99.37\% & 100.00\% \\ \bottomrule
+\end{tabular}
+\caption{Performance comparison of Reward Strategies on Map 4 with random start positions.}
+\end{table}
+
+\textbf{Random Start Discussion:} With random starts, both algorithms achieve $100\%$ accuracy under S2. It is clear that denser, well-shaped rewards (S2) result in more robust policies than purely sparse rewards (S1), allowing SARSA to bridge the performance gap and perfectly solve the environment.
+
+\subsection{Hard Maps Comparison}
+We also evaluated both algorithms on advanced environments (Maze 1 and U-Map) under optimal hyperparameters ($\epsilon=0.5, \gamma=1.0$) using both reward strategies.
+
+\subsubsection{Fixed Start Analysis}
+\begin{table}[H]
+\centering
+\begin{tabular}{lllccc}
+\toprule
+\textbf{Map} & \textbf{Strategy} & \textbf{Method} & \textbf{Time (s)} & \textbf{Average Efficiency (\%)} & \textbf{Accuracy (\%)} \\ \midrule
+Maze 1 & S1 & SARSA       & 37.43 & 94.65\% & 6.38\% \\
+U-Map  & S1 & SARSA       & 35.38 & 96.28\% & 69.85\% \\
+Maze 1 & S1 & Q-Learning  & 42.02 & 99.34\% & 45.84\% \\
+U-Map  & S1 & Q-Learning  & 40.73 & 99.43\% & 70.59\% \\
+Maze 1 & S2 & SARSA       & 40.27 & 93.20\% & 45.36\% \\
+U-Map  & S2 & SARSA       & 36.87 & 96.00\% & 46.52\% \\
+Maze 1 & S2 & Q-Learning  & 46.07 & 99.91\% & 48.65\% \\
+U-Map  & S2 & Q-Learning  & 40.24 & 98.74\% & 46.99\% \\ \bottomrule
+\end{tabular}
+\caption{Performance on advanced maps across reward strategies with a fixed start position.}
+\end{table}
+
+\textbf{Fixed Start Discussion:} On advanced maps, a fixed start position exposes the limitations of the training setup. For Maze 1 under S1, SARSA struggles significantly, managing only $6.38\%$ accuracy, while Q-Learning hits $45.84\%$. Switching to S2 provides SARSA with much-needed guidance on Maze 1, raising its accuracy to $45.36\%$. Surprisingly, on U-Map, S2 decreases accuracy for both algorithms, potentially due to the shaped reward encouraging overly greedy behavior that traps agents in the U-shape's dead end.
+
+\subsubsection{Random Start Analysis}
+\begin{table}[H]
+\centering
+\begin{tabular}{lllccc}
+\toprule
+\textbf{Map} & \textbf{Strategy} & \textbf{Method} & \textbf{Time (s)} & \textbf{Average Efficiency (\%)} & \textbf{Accuracy (\%)} \\ \midrule
+Maze 1 & S1 & SARSA       & 33.24 & 95.40\% & 21.86\% \\
+U-Map  & S1 & SARSA       & 28.83 & 95.59\% & 90.57\% \\
+Maze 1 & S1 & Q-Learning  & 32.87 & 99.50\% & 100.00\% \\
+U-Map  & S1 & Q-Learning  & 28.95 & 98.94\% & 100.00\% \\
+Maze 1 & S2 & SARSA       & 32.71 & 94.46\% & 75.44\% \\
+U-Map  & S2 & SARSA       & 27.14 & 94.09\% & 100.00\% \\
+Maze 1 & S2 & Q-Learning  & 33.35 & 99.55\% & 100.00\% \\
+U-Map  & S2 & Q-Learning  & 30.35 & 98.72\% & 100.00\% \\ \bottomrule
+\end{tabular}
+\caption{Performance on advanced maps across reward strategies with random start positions.}
+\end{table}
+
+\textbf{Random Start Discussion:} Random starts allow Q-Learning to dominate, achieving $100\%$ accuracy across all advanced maps and strategies. SARSA still struggles with Maze 1 under S1 ($21.86\%$ accuracy), but the S2 strategy dramatically improves its performance to $75.44\%$. Unlike the fixed start scenario, the random initializations prevent the agents from getting permanently stuck in the U-Map's dead end, yielding near-perfect performance.
 
 
 \section{Visualizations of Learned Paths}
