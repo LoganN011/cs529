@@ -2,15 +2,265 @@
 \usepackage{amsmath}
 \usepackage{graphicx} 
 \usepackage{booktabs}
+\usepackage{float}
+\usepackage{geometry}
+\usepackage{subcaption}
+\usepackage{hyperref}
+\usepackage{bmpsize}
+\DeclareGraphicsRule{}{bmp}{}{}
+
 
 \title{Final Project: Reinforcement Learning for Motion Planning}
-\author{Logan Nunno }
+\author{Logan Nunno}
 \date{May 2026}
 
 \begin{document}
 
 \maketitle
-\section{here} 
+
+\section{Introduction}
+The objective of this project was to implement and evaluate two fundamental Reinforcement Learning (RL) algorithms—State-Action-Reward-State-Action (SARSA) and Q-Learning—within the context of a 2D motion planning problem. The primary objective is to apply these algorithms to a 2D grid environment to find optimal paths from a starting position to a target while avoiding obstacles. This report details the map abstraction process, reward strategy design, and a comprehensive performance analysis based on various hyperparameters.
+
+Our problem involves an agent navigating discrete map abstractions derived from BMP images. The agent must learn an optimal policy $\pi(s)$ via trial and error, relying solely on environmental rewards. We investigate how varying hyperparameters—such as exploration rate ($\epsilon$), discount factor ($\gamma$), and reward formulation—affect the efficiency and accuracy of both SARSA and Q-Learning agents.
+
+\section{Methodology}
+\subsection{Map Abstraction}
+Motion planning often requires reducing complex continuous or high-resolution spaces into manageable discrete states. In this project, given BMP maps were loaded as 2D NumPy arrays and abstracted. To prevent the state space from growing intractably large, a pooling-like mechanism is used to over-approximate obstacles. The high-resolution matrices were downscaled to fixed grid dimensions (e.g., $20 \times 20$ for map 1, and $40 \times 40$ for larger maps). During abstraction, any grid block containing a black pixel was marked entirely as an obstacle to ensure conservative pathfinding and collision avoidance.
+
+\subsection{Environment and Agent}
+The environment simulates the 2D map, permitting four discrete actions: \textit{Up, Down, Left,} and \textit{Right}. The agent utilizes a 3D Q-table (dimensioned by $x$-coordinate, $y$-coordinate, and action space) to track the expected utility of state-action pairs. During training, the agent employs an $\epsilon$-greedy strategy to balance exploration of new paths with exploitation of known optimal actions.
+
+\subsection{Reward Strategies}
+Two reward strategies were implemented:
+
+\subsubsection{Strategy S1 (Naive)}
+\begin{itemize}
+    \item Reaching target: +100
+    \item Hitting obstacle or boundary: -100
+    \item Otherwise: -1 per step
+\end{itemize}
+
+This strategy encourages reaching the goal quickly while heavily penalizing invalid moves.
+
+\subsubsection{Strategy S2 (Shaped Reward)}
+\begin{itemize}
+    \item Reaching target: +100
+    \item Hitting obstacle: -100
+    \item Step penalty: -1
+    \item Additional reward based on Manhattan distance improvement:
+    \[
+    R += 10 \cdot (d_{\text{old}} - d_{\text{new}})
+    \]
+\end{itemize}
+
+This provides more informative feedback, guiding the agent toward the goal.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{0.24\textwidth}
+        \includegraphics[width=\linewidth]{Final/InputMapImgs/map1}
+        \caption{Map 1}
+    \end{subfigure}
+    \begin{subfigure}{0.24\textwidth}
+        \includegraphics[width=\linewidth]{Final/InputMapImgs/map2}
+        \caption{Map 2}
+    \end{subfigure}
+    \begin{subfigure}{0.24\textwidth}
+        \includegraphics[width=\linewidth]{Final/InputMapImgs/map3}
+        \caption{Map 3}
+    \end{subfigure}
+    \begin{subfigure}{0.24\textwidth}
+        \includegraphics[width=\linewidth]{Final/InputMapImgs/map4}
+        \caption{Map 4}
+    \end{subfigure}
+    \caption{Original input maps used to generate the abstracted RL environments.}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{0.45\textwidth}
+        \includegraphics[width=\linewidth]{Final/InputMapImgs/Advanced_Maps/maze1}
+        \caption{Advanced Maze 1}
+    \end{subfigure}
+    \begin{subfigure}{0.45\textwidth}
+        \includegraphics[width=\linewidth]{Final/InputMapImgs/Advanced_Maps/U-Map}
+        \caption{Advanced U-Map}
+    \end{subfigure}
+    \caption{Advanced, complex input maps to stress-test the trained agents.}
+\end{figure}
+
+\subsection{Learning Algorithms}
+\subsubsection{Q-Learning}
+\[
+Q(s,a) \leftarrow Q(s,a) + \alpha \left[r + \gamma \max_{a'} Q(s',a') - Q(s,a)\right]
+\]
+
+\subsubsection{SARSA}
+\[
+Q(s,a) \leftarrow Q(s,a) + \alpha \left[r + \gamma Q(s',a') - Q(s,a)\right]
+\]
+
+
+\section{Experiments and Results}
+Each experiment was run for 50,000 episodes. Performance was evaluated using:
+\begin{itemize}
+    \item Training time
+    \item Number of episodes
+    \item Accuracy (percentage of valid paths)
+    \item Average efficiency compared to optimal paths (BFS baseline)
+\end{itemize}
+
+\subsection{Map Complexity Comparison}
+We tested SARSA and Q-Learning ($\epsilon=0.1, \gamma=0.5$, S1) across four increasingly complex maps.
+\begin{table}[H]
+\centering
+\begin{tabular}{llccc}
+\toprule
+\textbf{Map} & \textbf{Method} & \textbf{Time (s)} & \textbf{Accuracy (Fixed Start)} & \textbf{Accuracy (Random Start)} \\ \midrule
+Map 1 & SARSA       & 30.60 & 83.39\%  & 100.0\% \\
+Map 1 & Q-Learning  & 14.75 & 100.0\%  & 100.0\% \\
+Map 2 & SARSA       & 56.34 & 1.05\%   & 88.74\% \\
+Map 2 & Q-Learning  & 37.28 & 78.69\%  & 84.44\% \\
+Map 3 & SARSA       & 51.91 & 0.30\%   & 12.90\% \\
+Map 3 & Q-Learning  & 37.72 & 67.19\%  & 88.99\% \\
+Map 4 & SARSA       & 83.26 & 0.17\%   & 39.97\% \\
+Map 4 & Q-Learning  & 43.00 & 69.81\%  & 96.11\% \\ \bottomrule
+\end{tabular}
+\caption{Performance across varying map complexities (50,000 episodes).}
+\end{table}
+
+\textbf{Discussion:} Q-Learning strictly dominates SARSA across all complexity levels, maintaining much higher accuracy and requiring less training time. SARSA's on-policy nature causes it to learn safer, sometimes overly-conservative policies that fail to reach the target in highly complex, convoluted spaces (like Maps 3 and 4) from a fixed start. Interestingly, utilizing a random start position during training drastically improved performance for both algorithms, particularly Q-Learning, enabling it to generalize and achieve over 96\% accuracy on Map 4. In \texttt{map3}, SARSA's accuracy dropped to 12.90\%, likely because its on-policy nature made it harder to escape local optima compared to Q-Learning's off-policy updates.
+
+\subsection{Exploration Rate ($\epsilon$) on Map 4}
+We tested different exploration probabilities ($\epsilon \in \{0.0, 0.5, 1.0\}$) using $\gamma=0.5$ and S1.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{clcc}
+\toprule
+\textbf{$\epsilon$ Value} & \textbf{Method} & \textbf{Accuracy (Fixed)} & \textbf{Accuracy (Random)} \\ \midrule
+0.0 & SARSA       & 59.86\% & 97.92\% \\
+0.0 & Q-Learning  & 59.86\% & 96.11\% \\
+0.5 & SARSA       & 2.25\%  & 38.24\% \\
+0.5 & Q-Learning  & 76.21\% & 97.92\% \\
+1.0 & SARSA       & 2.25\%  & 0.69\% \\
+1.0 & Q-Learning  & 2.25\%  & 97.23\% \\ \bottomrule
+\end{tabular}
+\caption{Impact of exploration rate on Map 4.}
+\end{table}
+
+\textbf{Discussion:} Extreme exploration ($\epsilon=1.0$) prevented SARSA from converging to any meaningful policy in the fixed start scenario, as the agent constantly took random actions and repeatedly hit obstacles. For Q-Learning under a random start, its off-policy nature allowed it to still learn an optimal Q-table despite taking random actions, maintaining a 97\% accuracy. A balanced approach ($\epsilon=0.5$ or decaying $\epsilon$) or relying purely on random starts ($\epsilon=0$) seemed to provide the best structural learning environments.
+
+
+\subsection{Discount Value ($\gamma$) on Map 4}
+Testing discount factors ($\gamma \in \{0.1, 0.5, 1.0\}$) using $\epsilon=0.5$ and S1.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{clcc}
+\toprule
+\textbf{$\gamma$ Value} & \textbf{Method} & \textbf{Accuracy (Fixed)} & \textbf{Accuracy (Random)} \\ \midrule
+0.1 & SARSA       & 2.25\%  & 2.42\% \\
+0.1 & Q-Learning  & 1.21\%  & 30.97\% \\
+0.5 & SARSA       & 2.25\%  & 38.06\% \\
+0.5 & Q-Learning  & 74.39\% & 97.92\% \\
+1.0 & SARSA       & 61.42\% & 76.12\% \\
+1.0 & Q-Learning  & 68.51\% & 100.0\% \\ \bottomrule
+\end{tabular}
+\caption{Impact of discount factor on Map 4.}
+\end{table}
+
+\textbf{Discussion:} A low $\gamma=0.1$ makes the agents extremely short-sighted, leading to failure in complex environments like Map 4 where the reward (target) is many steps away. Increasing $\gamma$ to $1.0$ massively improved SARSA's fixed-start accuracy from $2\%$ to $61\%$, and allowed Q-Learning to achieve a perfect $100\%$ valid path accuracy in the random-start environment. High discount factors are critical for deep maze solving.
+
+\subsection{Reward Strategy Comparison}
+Using the optimal hyperparameters ($\epsilon=0.5, \gamma=1.0$), we compared the Naive (S1) and Step-Penalized (S2) reward strategies on Map 4.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{clccc}
+\toprule
+\textbf{Strategy} & \textbf{Method} & \textbf{Time (s)} & \textbf{Efficiency} & \textbf{Accuracy (Fixed)} \\ \midrule
+S1 & SARSA       & 41.48 & 94.72\% & 63.58\% \\
+S2 & SARSA       & 49.04 & 94.63\% & 64.36\% \\
+S1 & Q-Learning  & 64.89 & 97.56\% & 68.94\% \\
+S2 & Q-Learning  & 51.45 & 99.63\% & 89.62\% \\ \bottomrule
+\end{tabular}
+\caption{Performance comparison of Reward Strategies on Map 4.}
+\end{table}
+
+\textbf{Discussion:} The S2 strategy significantly boosted Q-Learning's accuracy in the fixed start scenario, pushing it from $68.94\%$ to nearly $90\%$. By penalizing each step, the Q-values accurately reflect the true "cost" of long paths, forcing the algorithm to converge faster and more decisively on the shortest valid route. It is clear that denser, well-shaped rewards (S2) result in more robust policies than purely sparse rewards (S1). Both Q-Learning and SARSA achieved $100\%$ accuracy under S2 with random initializations.
+
+
+\section{Visualizations of Learned Paths}
+To visually inspect the trained policies, the generated paths from the trained agents were plotted.
+
+\subsection{Standard Map Paths}
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{0.45\textwidth}
+        \includegraphics[width=\linewidth]{Final/Plots/S1-SARSA.png}
+        \caption{Map 4: SARSA (Strategy 1)}
+    \end{subfigure}
+    \begin{subfigure}{0.45\textwidth}
+        \includegraphics[width=\linewidth]{Final/Plots/S2-SARSA.png}
+        \caption{Map 4: SARSA (Strategy 2)}
+    \end{subfigure}
+    \begin{subfigure}{0.45\textwidth}
+        \includegraphics[width=\linewidth]{Final/Plots/S1-Q-Learning.png}
+        \caption{Map 4: Q-Learning (Strategy 1)}
+    \end{subfigure}
+    \begin{subfigure}{0.45\textwidth}
+        \includegraphics[width=\linewidth]{Final/Plots/S2-Q-Learning.png}
+        \caption{Map 4: Q-Learning (Strategy 2)}
+    \end{subfigure}
+    \caption{Resulting paths on standard maps under varying reward strategies.}
+\end{figure}
+
+\subsection{Advanced Environments}
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{0.45\textwidth}
+        \includegraphics[width=\linewidth]{Final/Plots/S1-Maze1-Q-Learning.png}
+        \caption{Maze 1: Q-Learning (S1)}
+    \end{subfigure}
+    \begin{subfigure}{0.45\textwidth}
+        \includegraphics[width=\linewidth]{Final/Plots/S2-Maze1-Q-Learning.png}
+        \caption{Maze 1: Q-Learning (S2)}
+    \end{subfigure}
+    \begin{subfigure}{0.45\textwidth}
+        \includegraphics[width=\linewidth]{Final/Plots/S1-maze1-SARSA.png}
+        \caption{Maze 1: SARSA (S1)}
+    \end{subfigure}
+    \begin{subfigure}{0.45\textwidth}
+        \includegraphics[width=\linewidth]{Final/Plots/S2-Maze1-SARSA.png}
+        \caption{Maze 1: SARSA (S2)}
+    \end{subfigure}
+    \caption{Pathfinding results on the complex 'Maze 1' environment.}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}{0.45\textwidth}
+        \includegraphics[width=\linewidth]{Final/Plots/S1-U-Map-Q-Learning.png}
+        \caption{U-Map: Q-Learning (S1)}
+    \end{subfigure}
+    \begin{subfigure}{0.45\textwidth}
+        \includegraphics[width=\linewidth]{Final/Plots/S2-U-Map-U-Q-Learning.png}
+        \caption{U-Map: Q-Learning (S2)}
+    \end{subfigure}
+    \begin{subfigure}{0.45\textwidth}
+        \includegraphics[width=\linewidth]{Final/Plots/S1-U-Map-SARSA.png}
+        \caption{U-Map: SARSA (S1)}
+    \end{subfigure}
+    \begin{subfigure}{0.45\textwidth}
+        \includegraphics[width=\linewidth]{Final/Plots/S2-U-Map-Learning.png}
+        \caption{U-Map: SARSA (S2)}
+    \end{subfigure}
+    \caption{Pathfinding results on the deceptive 'U-Map' environment.}
+\end{figure}
+
+
+
 
 
 \end{document}
