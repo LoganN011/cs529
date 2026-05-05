@@ -52,8 +52,8 @@ def train(env, agent, episodes, method="Q-Learning",strategy="S1", patience=1000
 def run_experiment(map_path, method, epsilon, gamma, test_name, strategy="S1",save_model=False):
     """Runs a single training/testing session and returns performance metrics."""
     # Setup environment
-    grid_size = (20, 20) if "map1" in map_path else (40, 40)
-    target = (19,19) if "map1" in map_path else (39, 39)
+    grid_size =  (40, 40)
+    target =  (39, 39)
     grid = abstract_map(map_path, size=grid_size)
     env = Environment(grid, target=target)
     agent = Agent(env, alpha=0.1, gamma=gamma, epsilon=epsilon)
