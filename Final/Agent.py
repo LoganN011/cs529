@@ -6,7 +6,13 @@ random.seed(0)
 
 
 class Agent:
+    """
+    Represents a Reinforcement Learning agent.
+    Manages the Q-table and implements action selection (epsilon-greedy) 
+    and Q-value updates for both SARSA and Q-Learning algorithms.
+    """
     def __init__(self, env, alpha=0.1, gamma=0.5, epsilon=0.1):
+        """Initializes the agent with the given environment and learning parameters."""
         self.env = env
         self.alpha = alpha  # Learning rate
         self.gamma = gamma  # Discount factor
@@ -16,11 +22,11 @@ class Agent:
         self.q_table = {}
 
     def get_q(self, x, y, action):
-        """Helper to get Q-value, defaulting to 0.0 if not yet visited."""
+        """Retrieves the Q-value for a state-action pair, defaulting to 0.0 if unvisited."""
         return self.q_table.get(x, {}).get(y, {}).get(action, 0.0)
 
     def set_q(self, x, y, action, value):
-        """Helper to set Q-value in the nested dictionary structure."""
+        """Updates the Q-value for a specific state-action pair in the nested dictionary structure."""
         if x not in self.q_table:
             self.q_table[x] = {}
         if y not in self.q_table[x]:
@@ -28,7 +34,10 @@ class Agent:
         self.q_table[x][y][action] = value
 
     def choose_action(self, state):
-        """Epsilon-greedy action selection"""
+        """
+        Selects an action based on an epsilon-greedy policy.
+        Explores randomly with probability epsilon, otherwise exploits the best known action.
+        """
         x, y = state
         if random.uniform(0, 1) < self.epsilon:
             # Exploration: choose random action
@@ -39,6 +48,10 @@ class Agent:
             return np.argmax(q_values)
 
     def update(self, state, action, reward, next_state, next_action, method="Q-Learning"):
+        """
+        Updates the Q-table based on the observed reward and subsequent state.
+        Supports both Q-Learning (off-policy) and SARSA (on-policy) update rules.
+        """
         x, y = state
         next_x, next_y = next_state
 

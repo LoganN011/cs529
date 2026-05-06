@@ -9,16 +9,18 @@ from Agent import Agent
 from Environment import abstract_map, Environment
 
 
-def train(env, agent, episodes, method="Q-Learning",strategy="S1", patience=1000):
+def train(env, agent, episodes, method="Q-Learning",strategy="S1"):
+    """
+    Trains the agent in the given environment over a specified number of episodes.
+    Returns a history dictionary containing steps and total reward per episode.
+    """
     history = {"steps": [], "rewards": []}
-    consecutive_successes = 0
 
     for episode in tqdm(range(episodes), desc=f"Training {method}"):
         state = env.get_random_start()
         action = agent.choose_action(state)
         total_reward = 0
         steps = 0
-        env.reset()
         done = False
 
         while not done:
@@ -37,20 +39,15 @@ def train(env, agent, episodes, method="Q-Learning",strategy="S1", patience=1000
         history["steps"].append(steps)
         history["rewards"].append(total_reward)
 
-        # if state == env.target:
-        #     consecutive_successes += 1
-        # else:
-        #     consecutive_successes = 0
-        #
-        # if consecutive_successes >= patience:
-        #     tqdm.write(f" Converged at episode {episode}")
-        #     break
-
     return history
 
 
 def run_experiment(map_path, method, epsilon, gamma, test_name, strategy="S1",save_model=False):
-    """Runs a single training/testing session and returns performance metrics."""
+    """
+    Runs a single training and evaluation session for a specific map and set of parameters.
+    Returns performance metrics such as accuracy, efficiency, and training time.
+    Optionally returns the trained agent if save_model is True.
+    """
     # Setup environment
     grid_size =  (40, 40)
     target =  (39, 39)
@@ -111,7 +108,11 @@ def run_experiment(map_path, method, epsilon, gamma, test_name, strategy="S1",sa
 
 
 def is_path_valid(env, agent, start_pos, max_steps=200):
-    """Greedy evaluation. Returns (Success, Path_Length)."""
+    """
+    Evaluates whether the agent can successfully reach the target from a given start position 
+    using a greedy policy based on its learned Q-values. 
+    Returns a tuple of (Success: bool, Path_Length: int).
+    """
     state = start_pos
     path_length = 0
     for _ in range(max_steps):
@@ -133,6 +134,10 @@ def is_path_valid(env, agent, start_pos, max_steps=200):
 
 
 def plot_path(agent, max_steps=200, start=(0, 0),title=None):
+    """
+    Simulates the agent's greedy path from a starting position and plots it on the map.
+    Stops if the agent hits a wall or exceeds max_steps.
+    """
     env = agent.env
     state = start # (x, y)
     path = [state]
@@ -163,7 +168,6 @@ def plot_path(agent, max_steps=200, start=(0, 0),title=None):
 if __name__ == "__main__":
     results = []
     maps = ["./Input_Maps/map1.bmp", "./Input_Maps/map2.bmp", "./Input_Maps/map3.bmp", "./Input_Maps/map4.bmp"]
-    grids = []
 
     # --- COMPARISON 1: SARSA vs Q-Learning (Varying Complexity) ---
     print("\n--- Task 6.1: SARSA vs Q-Learning ---")

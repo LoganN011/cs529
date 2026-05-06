@@ -8,6 +8,10 @@ from matplotlib import pyplot as plt
 random.seed(0)
 
 def abstract_map(img_path, size=(40, 40)):
+    """
+    Reads an image map, binarizes it, and resizes it into an abstracted grid.
+    Returns a numpy array where 0 is walkable space and 1 is an obstacle.
+    """
     img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
     if img is None:
         raise ValueError("Could not open or find the image.")
@@ -22,18 +26,24 @@ def abstract_map(img_path, size=(40, 40)):
 
 
 class Environment:
+    """
+    Represents the grid world environment for the RL agent.
+    Handles state transitions, collision detection, reward calculations, and map visualization.
+    """
     def __init__(self, grid, target=(39, 39)):
+        """Initializes the environment with the given grid map and target coordinates."""
         self.grid = grid
         self.target = target
         self.width, self.height = self.grid.shape
         self.actions = {0: "up", 1: "down", 2: "right", 3: "left"}
-        self.visited_states = set()
 
-    def reset(self):
-        """Resets the environment for a new episode."""
-        self.visited_states = set()  # Clear memory for S2
 
     def step(self, state, action, strategy="S1"):
+        """
+        Executes a single step in the environment.
+        Calculates the next state based on the chosen action, checks for collisions, 
+        and computes the reward according to the specified strategy.
+        """
         x, y = state
         next_x, next_y = state
 
@@ -59,11 +69,15 @@ class Environment:
             new_state = (next_x, next_y)
 
         reward = self._get_reward(state,new_state, hit, strategy)
-        self.visited_states.add(tuple(new_state))
 
         return new_state, reward
 
     def _get_reward(self,old, state, hit, strategy):
+        """
+        Determines the reward for moving to a new state based on the selected strategy.
+        S1: Standard rewards (-1 per step, -100 for collisions, 100 for reaching target).
+        S2: Distance-based shaped rewards (encourages moving closer to the target).
+        """
         if strategy == "S1":
             if state == self.target:
                 return 100
@@ -85,14 +99,11 @@ class Environment:
 
             reward += (old_dist - new_dist)*10
 
-            # 3. Visited state penalty
-            # if state in self.visited_states:
-            #     reward -= 2  # Heavy penalty for backtracking
-
             return reward
         return 0
 
     def plot_map(self, path=None,title="Abstracted Map Environment"):
+        """Plots the map grid along with the start, target, and the agent's path if provided."""
         fig, ax = plt.subplots(figsize=(8, 8))
 
 
@@ -156,9 +167,3 @@ class Environment:
                         queue.append(((nx, ny), dist + 1))
 
         return float('inf')
-
-
-if __name__ == '__main__':
-    test = abstract_map("./Input_Maps/map1.bmp")
-    env = Environment(test)
-    env.plot_map()
